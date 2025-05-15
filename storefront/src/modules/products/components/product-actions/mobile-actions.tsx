@@ -9,9 +9,12 @@ import X from "@modules/common/icons/x"
 import { getProductPrice } from "@lib/util/get-product-price"
 import OptionSelect from "./option-select"
 import { HttpTypes } from "@medusajs/types"
+import { ExtrudedProduct } from "types/global"
 
 type MobileActionsProps = {
-  product: HttpTypes.StoreProduct
+  product: HttpTypes.StoreProduct & {
+      extruded_products?: ExtrudedProduct
+    }
   variant?: HttpTypes.StoreProductVariant
   options: Record<string, string | undefined>
   updateOptions: (title: string, value: string) => void

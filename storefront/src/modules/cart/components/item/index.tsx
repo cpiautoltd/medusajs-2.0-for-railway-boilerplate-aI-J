@@ -2,6 +2,7 @@
 
 import { Table, Text, clx } from "@medusajs/ui"
 
+// src/modules/cart/components/item/index.tsx
 import { updateLineItem } from "@lib/data/cart"
 import { HttpTypes } from "@medusajs/types"
 import CartItemSelect from "@modules/cart/components/cart-item-select"
@@ -14,6 +15,8 @@ import LocalizedClientLink from "@modules/common/components/localized-client-lin
 import Spinner from "@modules/common/icons/spinner"
 import Thumbnail from "@modules/products/components/thumbnail"
 import { useState } from "react"
+import { extractLengthDetails } from "@lib/util/length-based-utils"
+import { convertToLocale } from "@lib/util/money"
 
 type ItemProps = {
   item: HttpTypes.StoreCartLineItem
@@ -25,12 +28,20 @@ const Item = ({ item, type = "full" }: ItemProps) => {
   const [error, setError] = useState<string | null>(null)
 
   const { handle } = item.variant?.product ?? {}
+  
+  // Check if this is a length-based product by examining metadata
+  const lengthDetails = extractLengthDetails(item.metadata)
+  const isLengthBased = Boolean(lengthDetails)
+
+  console.log("Redering the cart item component for line item", item.cart_id);
+
+  console.log("\n +++++++++++++++++++++ \n The metadata is : ", item.metadata, " \n +++++++++++++++++++++ \n");
 
   const changeQuantity = async (quantity: number) => {
     setError(null)
     setUpdating(true)
 
-    const message = await updateLineItem({
+    await updateLineItem({
       lineId: item.id,
       quantity,
     })
@@ -43,8 +54,8 @@ const Item = ({ item, type = "full" }: ItemProps) => {
   }
 
   // TODO: Update this to grab the actual max inventory
-  const maxQtyFromInventory = 10
-  const maxQuantity = item.variant?.manage_inventory ? 10 : maxQtyFromInventory
+  const maxQtyFromInventory = 100
+  const maxQuantity = item.variant?.manage_inventory ? 100 : maxQtyFromInventory
 
   return (
     <Table.Row className="w-full" data-testid="product-row">
@@ -72,6 +83,13 @@ const Item = ({ item, type = "full" }: ItemProps) => {
           {item.product_title}
         </Text>
         <LineItemOptions variant={item.variant} data-testid="product-variant" />
+        
+        {/* Display length information for length-based products */}
+        {isLengthBased && lengthDetails && (
+  <Text className="text-ui-fg-subtle text-small-regular">
+    Length: {lengthDetails.length} {lengthDetails.unitType || "inch"}
+  </Text>
+)}
       </Table.Cell>
 
       {type === "full" && (
@@ -84,7 +102,6 @@ const Item = ({ item, type = "full" }: ItemProps) => {
               className="w-14 h-10 p-4"
               data-testid="product-select-button"
             >
-              {/* TODO: Update this with the v2 way of managing inventory */}
               {Array.from(
                 {
                   length: Math.min(maxQuantity, 10),
@@ -95,10 +112,6 @@ const Item = ({ item, type = "full" }: ItemProps) => {
                   </option>
                 )
               )}
-
-              <option value={1} key={1}>
-                1
-              </option>
             </CartItemSelect>
             {updating && <Spinner />}
           </div>

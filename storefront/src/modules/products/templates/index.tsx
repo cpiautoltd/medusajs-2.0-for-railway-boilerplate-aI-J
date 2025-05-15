@@ -11,8 +11,32 @@ import { notFound } from "next/navigation"
 import ProductActionsWrapper from "./product-actions-wrapper"
 import { HttpTypes } from "@medusajs/types"
 
+
+type ExtrudedProduct = {
+  id: string
+  is_length_based: boolean
+  unitType: string
+  minLength: number
+  maxLength: number
+  price_per_unit: number
+  cut_price: number
+  raw_price_per_unit: {
+    value: string
+    precision: number
+  }
+  raw_cut_price: {
+    value: string
+    precision: number
+  }
+  created_at: string
+  updated_at: string | null
+  deleted_at: string | null
+}
+
 type ProductTemplateProps = {
-  product: HttpTypes.StoreProduct
+  product: HttpTypes.StoreProduct & {
+    extruded_products?: ExtrudedProduct
+  }
   region: HttpTypes.StoreRegion
   countryCode: string
 }
@@ -25,6 +49,10 @@ const ProductTemplate: React.FC<ProductTemplateProps> = ({
   if (!product || !product.id) {
     return notFound()
   }
+
+  // console.log("product @ ProductTemplate:  for handle : ", product.handle, " : \n\n", product.extruded_products);
+
+  
 
   return (
     <>

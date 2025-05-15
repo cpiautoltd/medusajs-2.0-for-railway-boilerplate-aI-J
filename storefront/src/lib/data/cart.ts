@@ -10,6 +10,7 @@ import { getAuthHeaders, getCartId, removeCartId, setCartId } from "./cookies"
 import { getProductsById } from "./products"
 import { getRegion } from "./regions"
 
+
 export async function retrieveCart() {
   const cartId = getCartId()
 
@@ -68,14 +69,53 @@ export async function updateCart(data: HttpTypes.StoreUpdateCart) {
     .catch(medusaError)
 }
 
+// export async function addToCart({
+//   variantId,
+//   quantity,
+//   countryCode,
+// }: {
+//   variantId: string
+//   quantity: number
+//   countryCode: string
+// }) {
+//   if (!variantId) {
+//     throw new Error("Missing variant ID when adding to cart")
+//   }
+
+//   const cart = await getOrSetCart(countryCode)
+//   if (!cart) {
+//     throw new Error("Error retrieving or creating cart")
+//   }
+
+//   await sdk.store.cart
+//     .createLineItem(
+//       cart.id,
+//       {
+//         variant_id: variantId,
+//         quantity,
+//       },
+//       {},
+//       getAuthHeaders()
+//     )
+//     .then(() => {
+//       revalidateTag("cart")
+//     })
+//     .catch(medusaError)
+// }
+
+/**
+ * Add a product variant to the cart
+ */
 export async function addToCart({
   variantId,
   quantity,
   countryCode,
+  metadata
 }: {
   variantId: string
   quantity: number
   countryCode: string
+  metadata?: Record<string, any>
 }) {
   if (!variantId) {
     throw new Error("Missing variant ID when adding to cart")
@@ -86,13 +126,23 @@ export async function addToCart({
     throw new Error("Error retrieving or creating cart")
   }
 
+  
+
+  // Create the line item data with optional metadata
+  const lineItemData: HttpTypes.StoreAddCartLineItem = {
+    variant_id: variantId,
+    quantity,
+  }
+  
+  // Add metadata if provided
+  if (metadata) {
+    lineItemData.metadata = metadata
+  }
+
   await sdk.store.cart
     .createLineItem(
       cart.id,
-      {
-        variant_id: variantId,
-        quantity,
-      },
+      lineItemData,
       {},
       getAuthHeaders()
     )

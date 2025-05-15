@@ -103,9 +103,11 @@ export default function ProductActions({
       variantId: selectedVariant.id,
       quantity: 1,
       countryCode,
+    }).catch((err) => {
+      console.error(err)
+    }).finally(() => {
+      setIsAdding(false)
     })
-
-    setIsAdding(false)
   }
 
   return (

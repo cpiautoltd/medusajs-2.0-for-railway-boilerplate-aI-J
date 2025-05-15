@@ -65,6 +65,8 @@ export const MINIO_ENDPOINT = process.env.MINIO_ENDPOINT;
 export const MINIO_ACCESS_KEY = process.env.MINIO_ACCESS_KEY;
 export const MINIO_SECRET_KEY = process.env.MINIO_SECRET_KEY;
 export const MINIO_BUCKET = process.env.MINIO_BUCKET; // Optional, if not set bucket will be called: medusa-media
+export const MINIO_USE_SSL = IS_DEV ? false : true; // Optional, if not set bucket will be called: medusa-media
+export const MINIO_PORT = process.env.MINIO_PORT; // Optional, if not set bucket will be called: medusa-media
 
 /**
  * (optional) Resend API Key and from Email - do not set if using SendGrid
@@ -100,3 +102,77 @@ export const WORKER_MODE =
  * Disable Admin
  */
 export const SHOULD_DISABLE_ADMIN = process.env.MEDUSA_DISABLE_ADMIN === 'true'
+
+export const UPS_CLIENT_ID = process.env.UPS_CLIENT_ID
+export const UPS_CLIENT_SECRET = process.env.UPS_CLIENT_SECRET
+export const UPS_MERCHANT_ID = process.env.UPS_MERCHANT_ID
+
+export const SHIPPING_PROVINCE_MAP = {
+  // Canadian provinces
+  'alberta': 'AB',
+  'british columbia': 'BC',
+  'manitoba': 'MB',
+  'new brunswick': 'NB',
+  'newfoundland and labrador': 'NL',
+  'nova scotia': 'NS',
+  'northwest territories': 'NT',
+  'nunavut': 'NU',
+  'ontario': 'ON',
+  'prince edward island': 'PE',
+  'quebec': 'QC',
+  'saskatchewan': 'SK',
+  'yukon': 'YT',
+  
+  // US states
+  'alabama': 'AL',
+  'alaska': 'AK',
+  'arizona': 'AZ',
+  'arkansas': 'AR',
+  'california': 'CA',
+  'colorado': 'CO',
+  'connecticut': 'CT',
+  'delaware': 'DE',
+  'florida': 'FL',
+  'georgia': 'GA',
+  'hawaii': 'HI',
+  'idaho': 'ID',
+  'illinois': 'IL',
+  'indiana': 'IN',
+  'iowa': 'IA',
+  'kansas': 'KS',
+  'kentucky': 'KY',
+  'louisiana': 'LA',
+  'maine': 'ME',
+  'maryland': 'MD',
+  'massachusetts': 'MA',
+  'michigan': 'MI',
+  'minnesota': 'MN',
+  'mississippi': 'MS',
+  'missouri': 'MO',
+  'montana': 'MT',
+  'nebraska': 'NE',
+  'nevada': 'NV',
+  'new hampshire': 'NH',
+  'new jersey': 'NJ',
+  'new mexico': 'NM',
+  'new york': 'NY',
+  'north carolina': 'NC',
+  'north dakota': 'ND',
+  'ohio': 'OH',
+  'oklahoma': 'OK',
+  'oregon': 'OR',
+  'pennsylvania': 'PA',
+  'rhode island': 'RI',
+  'south carolina': 'SC',
+  'south dakota': 'SD',
+  'tennessee': 'TN',
+  'texas': 'TX',
+  'utah': 'UT',
+  'vermont': 'VT',
+  'virginia': 'VA',
+  'washington': 'WA',
+  'west virginia': 'WV',
+  'wisconsin': 'WI',
+  'wyoming': 'WY',
+  'district of columbia': 'DC'
+};

@@ -9,7 +9,7 @@ const PRODUCT_LIMIT = 12
 type PaginatedProductsParams = {
   limit: number
   collection_id?: string[]
-  category_id?: string[]
+  category_id?: string
   id?: string[]
   order?: string
 }
@@ -25,20 +25,24 @@ export default async function PaginatedProducts({
   sortBy?: SortOptions
   page: number
   collectionId?: string
-  categoryId?: string
+  categoryId?: string | null
   productsIds?: string[]
   countryCode: string
 }) {
   const queryParams: PaginatedProductsParams = {
-    limit: 12,
+    limit: PRODUCT_LIMIT,
   }
 
   if (collectionId) {
     queryParams["collection_id"] = [collectionId]
   }
 
+  // Add category filtering
+
+  console.log("In Paginated prodcts the category ID ", categoryId)
+
   if (categoryId) {
-    queryParams["category_id"] = [categoryId]
+    queryParams["category_id"] = categoryId
   }
 
   if (productsIds) {
@@ -68,24 +72,35 @@ export default async function PaginatedProducts({
 
   return (
     <>
-      <ul
-        className="grid grid-cols-2 w-full small:grid-cols-3 medium:grid-cols-4 gap-x-6 gap-y-8"
-        data-testid="products-list"
-      >
-        {products.map((p) => {
-          return (
-            <li key={p.id}>
-              <ProductPreview product={p} region={region} />
-            </li>
-          )
-        })}
-      </ul>
-      {totalPages > 1 && (
-        <Pagination
-          data-testid="product-pagination"
-          page={page}
-          totalPages={totalPages}
-        />
+      {products.length === 0 ? (
+        <div className="flex flex-col items-center text-center py-16">
+          <h2 className="text-xl-semi text-ui-fg-base">No products found</h2>
+          <p className="text-base-regular text-ui-fg-subtle mt-2">
+            Try adjusting your filters or search term
+          </p>
+        </div>
+      ) : (
+        <>
+          <ul
+            className="grid grid-cols-2 w-full small:grid-cols-3 medium:grid-cols-4 gap-x-6 gap-y-8"
+            data-testid="products-list"
+          >
+            {products.map((p) => {
+              return (
+                <li key={p.id}>
+                  <ProductPreview product={p} region={region} />
+                </li>
+              )
+            })}
+          </ul>
+          {totalPages > 1 && (
+            <Pagination
+              data-testid="product-pagination"
+              page={page}
+              totalPages={totalPages}
+            />
+          )}
+        </>
       )}
     </>
   )

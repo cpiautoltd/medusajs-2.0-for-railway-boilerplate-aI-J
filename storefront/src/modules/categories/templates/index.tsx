@@ -1,7 +1,5 @@
-import { notFound } from "next/navigation"
 import { Suspense } from "react"
 
-import InteractiveLink from "@modules/common/components/interactive-link"
 import SkeletonProductGrid from "@modules/skeletons/templates/skeleton-product-grid"
 import RefinementList from "@modules/store/components/refinement-list"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
@@ -26,14 +24,12 @@ export default function CategoryTemplate({
   const category = categories[categories.length - 1]
   const parents = categories.slice(0, categories.length - 1)
 
-  if (!category || !countryCode) notFound()
-
   return (
     <div
       className="flex flex-col small:flex-row small:items-start py-6 content-container"
       data-testid="category-container"
     >
-      <RefinementList sortBy={sort} data-testid="sort-by-container" />
+      <RefinementList sortBy={sort} categoryId={category.id} data-testid="sort-by-container" />
       <div className="w-full">
         <div className="flex flex-row mb-8 text-2xl-semi gap-4">
           {parents &&
@@ -61,9 +57,9 @@ export default function CategoryTemplate({
             <ul className="grid grid-cols-1 gap-2">
               {category.category_children?.map((c) => (
                 <li key={c.id}>
-                  <InteractiveLink href={`/categories/${c.handle}`}>
+                  <LocalizedClientLink href={`/categories/${c.handle}`}>
                     {c.name}
-                  </InteractiveLink>
+                  </LocalizedClientLink>
                 </li>
               ))}
             </ul>

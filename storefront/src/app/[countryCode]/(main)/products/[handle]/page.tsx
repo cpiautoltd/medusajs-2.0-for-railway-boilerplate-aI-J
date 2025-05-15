@@ -1,9 +1,13 @@
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
-
 import ProductTemplate from "@modules/products/templates"
 import { getRegion, listRegions } from "@lib/data/regions"
 import { getProductByHandle, getProductsList } from "@lib/data/products"
+import { ExtendedProduct } from "types/global"
+
+export const revalidate = 60
+export const dynamicParams = true
+
 
 type Props = {
   params: { countryCode: string; handle: string }
@@ -29,6 +33,12 @@ export async function generateStaticParams() {
   ).then((responses) =>
     responses.map(({ response }) => response.products).flat()
   )
+
+  console.log("products during generateStaticParams : ", products.length)
+
+  if(products.length !== 0) {
+    console.log("\n\nSample product during generateStaticParams : \n\n", products.flatMap(product => product.handle))
+  }
 
   const staticParams = countryCodes
     ?.map((countryCode) =>
@@ -74,10 +84,12 @@ export default async function ProductPage({ params }: Props) {
     notFound()
   }
 
-  const pricedProduct = await getProductByHandle(params.handle, region.id)
+  const pricedProduct:ExtendedProduct = await getProductByHandle(params.handle, region.id) as ExtendedProduct
   if (!pricedProduct) {
     notFound()
   }
+
+  // console.log("pricedProduct : \n\n", pricedProduct)
 
   return (
     <ProductTemplate

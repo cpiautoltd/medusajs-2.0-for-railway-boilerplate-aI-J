@@ -12,6 +12,7 @@ import { useEffect, useState } from "react"
 import { setShippingMethod } from "@lib/data/cart"
 import { convertToLocale } from "@lib/util/money"
 import { HttpTypes } from "@medusajs/types"
+import { calculateShippingOption } from "@lib/data/fulfillment"
 
 type ShippingProps = {
   cart: HttpTypes.StoreCart
@@ -31,10 +32,38 @@ const Shipping: React.FC<ShippingProps> = ({
 
   const isOpen = searchParams.get("step") === "delivery"
 
+  // console.log("availableShippingMethods ::::::::::::::", availableShippingMethods?.map(({name, calculated_price}) => ({name, calculated_price})))
+
   const selectedShippingMethod = availableShippingMethods?.find(
     // To do: remove the previously selected shipping method instead of using the last one
     (method) => method.id === cart.shipping_methods?.at(-1)?.shipping_option_id
   )
+
+  // const [shippingMethods, setShippingMethods] = useState(availableShippingMethods)
+
+  // useEffect(() => {
+  //   if (availableShippingMethods?.length !== 0) {
+  //     return
+  //   }
+
+  //   const promises = availableShippingMethods
+  //   .filter((shippingOption) => shippingOption.price_type === "calculated")
+  //   .map(async (shippingOption) => {
+  //     const updatedShippingMethod = await calculateShippingOption(shippingOption.id, cart.id)
+  //     return updatedShippingMethod
+  //   })
+
+  //   if (promises.length) {
+  //     Promise.all(promises).then((res) => {
+  //       console.log("useEffect for shipping ::::::::::::::", res)
+  //     })
+  //   }
+
+    
+    
+
+  //   // setShippingMethods(updatedShippingMethods)
+  // }, [availableShippingMethods, cart])
 
   const handleEdit = () => {
     router.push(pathname + "?step=delivery", { scroll: false })

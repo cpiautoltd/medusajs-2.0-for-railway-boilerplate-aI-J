@@ -2,15 +2,16 @@
   "name": "medusa-next",
   "version": "1.0.3",
   "private": true,
-  "author": "Kasper Fabricius Kristensen <kasper@medusajs.com> & Victor Gerbrands <victor@medusajs.com> (https://www.medusajs.com)",
+  "author": "CPI Automation",
   "description": "Next.js Starter to be used with Medusa server",
   "keywords": [
-    "medusa-storefront"
+    ""
   ],
   "scripts": {
     "wait": "await-backend",
     "launcher": "launch-storefront",
     "dev": "npm run wait && npm run launcher dev",
+    "dev:debug": "npm run wait && cross-env NODE_OPTIONS=\"--inspect=9230\" npm run launcher dev",
     "build": "npm run wait && npm run launcher build",
     "start": "npm run launcher start",
     "build:next": "next build",
@@ -24,6 +25,7 @@
   "dependencies": {
     "@headlessui/react": "^1.6.1",
     "@hookform/error-message": "^2.0.0",
+    "@medusajs/icons": "^2.7.0",
     "@medusajs/js-sdk": "preview",
     "@medusajs/types": "preview",
     "@medusajs/ui": "preview",
@@ -62,6 +64,7 @@
     "ansi-colors": "^4.1.3",
     "autoprefixer": "^10.4.2",
     "babel-loader": "^8.2.3",
+    "cross-env": "^7.0.3",
     "eslint": "8.10.0",
     "eslint-config-next": "^13.4.5",
     "postcss": "^8.4.8",

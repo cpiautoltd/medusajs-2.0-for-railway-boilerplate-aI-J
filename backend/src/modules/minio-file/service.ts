@@ -19,6 +19,8 @@ interface MinioServiceConfig {
   accessKey: string
   secretKey: string
   bucket?: string
+  port?: number,
+  useSSL?: boolean
 }
 
 export interface MinioFileProviderOptions {
@@ -26,6 +28,8 @@ export interface MinioFileProviderOptions {
   accessKey: string
   secretKey: string
   bucket?: string
+  port?: number
+  useSSL?: boolean
 }
 
 const DEFAULT_BUCKET = 'medusa-media'
@@ -47,25 +51,33 @@ class MinioFileProviderService extends AbstractFileProviderService {
       endPoint: options.endPoint,
       accessKey: options.accessKey,
       secretKey: options.secretKey,
-      bucket: options.bucket
+      bucket: options.bucket,
+      useSSL: false,
+      port: options.port ?? 443
     }
 
     // Use provided bucket or default
     this.bucket = this.config_.bucket || DEFAULT_BUCKET
     this.logger_.info(`MinIO service initialized with bucket: ${this.bucket}`)
+    // this.logger_.info("Initialization is ABBOUTT complete in then.!!!!")
 
     // Initialize Minio client with hardcoded SSL settings
     this.client = new Client({
       endPoint: this.config_.endPoint,
-      port: 443,
-      useSSL: true,
+      port: this.config_.port,
+      useSSL: false,
       accessKey: this.config_.accessKey,
       secretKey: this.config_.secretKey
     })
 
+    
+    // console.log(this.client)
+
     // Initialize bucket and policy
     this.initializeBucket().catch(error => {
       this.logger_.error(`Failed to initialize MinIO bucket: ${error.message}`)
+    }).then(() => {
+      this.logger_.info("Initialization is complete in then.!!!!")
     })
   }
 
@@ -88,9 +100,21 @@ class MinioFileProviderService extends AbstractFileProviderService {
 
   private async initializeBucket(): Promise<void> {
     try {
+
+      this.logger_.info("initilization of Bucket starts!@@+ ")
       // Check if bucket exists
+      const buckets = await this.client.listBuckets();
+      this.logger_.info("Listing buckets : " + buckets.length)
+
+      buckets.forEach(bucket => {
+        this.logger_.info(bucket.name + "  :  Creation Date is : " + bucket.creationDate)
+      })
+
       const bucketExists = await this.client.bucketExists(this.bucket)
-      
+
+      this.logger_.info("Bucket exists")
+      this.logger_.info(bucketExists ? "true" : "false")
+
       if (!bucketExists) {
         // Create the bucket
         await this.client.makeBucket(this.bucket)
@@ -177,7 +201,7 @@ class MinioFileProviderService extends AbstractFileProviderService {
       )
 
       // Generate URL using the endpoint and bucket
-      const url = `https://${this.config_.endPoint}/${this.bucket}/${fileKey}`
+      const url = `http${this.config_.useSSL ? 's' : ''}://${this.config_.endPoint}/${this.bucket}/${fileKey}`
 
       this.logger_.info(`Successfully uploaded file ${fileKey} to MinIO bucket ${this.bucket}`)
 

@@ -21,8 +21,17 @@ import {
   MINIO_SECRET_KEY,
   MINIO_BUCKET,
   MEILISEARCH_HOST,
-  MEILISEARCH_ADMIN_KEY
+  MEILISEARCH_ADMIN_KEY,
+  UPS_CLIENT_ID,
+  UPS_CLIENT_SECRET,
+  UPS_MERCHANT_ID,
+  MINIO_PORT,
+  MINIO_USE_SSL
 } from 'lib/constants';
+import { EXTRUDED_PRODUCTS_MODULE } from 'modules/extruded-products';
+import { LENGTH_PRICING_MODULE } from 'modules/length-pricing';
+import { MACHINING_SERVICE_MODULE } from 'modules/machining';
+// import { MACHINING_SERVICE_MODULE } from 'modules/machining';
 
 loadEnv(process.env.NODE_ENV, process.cwd());
 
@@ -57,7 +66,9 @@ const medusaConfig = {
               endPoint: MINIO_ENDPOINT,
               accessKey: MINIO_ACCESS_KEY,
               secretKey: MINIO_SECRET_KEY,
-              bucket: MINIO_BUCKET // Optional, default: medusa-media
+              bucket: MINIO_BUCKET, // Optional, default: medusa-media
+              port: MINIO_PORT, // Optional, default: 443
+              useSSL: MINIO_USE_SSL // Optional, default: true
             }
           }] : [{
             resolve: '@medusajs/file-local',
@@ -69,6 +80,42 @@ const medusaConfig = {
           }])
         ]
       }
+    },
+    {
+      key: Modules.FULFILLMENT,
+      resolve: "@medusajs/medusa/fulfillment",
+      options: {
+        providers: [
+          // default manual provider
+          {
+            resolve: "@medusajs/medusa/fulfillment-manual",
+            id: "manual",
+          },
+          // UPS provider - add this
+          {
+            resolve: "./src/modules/ups",
+            id: "ups",
+            options: {
+              clientId: UPS_CLIENT_ID,
+              clientSecret: UPS_CLIENT_SECRET,
+              merchantId: UPS_MERCHANT_ID, // Optional
+              sandbox: "sandbox"// process.env.NODE_ENV !== "production", // Use sandbox in non-production environments
+            },
+          },
+        ],
+      },
+    },
+    {
+      resolve: './src/modules/extruded-products',
+      key: EXTRUDED_PRODUCTS_MODULE
+    },
+    {
+      resolve: './src/modules/length-pricing',
+      key: LENGTH_PRICING_MODULE
+    },
+    {
+      resolve: './src/modules/machining',
+      key: MACHINING_SERVICE_MODULE
     },
     ...(REDIS_URL ? [{
       key: Modules.EVENT_BUS,

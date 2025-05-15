@@ -10,6 +10,15 @@ const requiredEnvs = [
 ]
 
 function checkEnvVariables() {
+
+  console.log(c.green.bold("\n👋 Hello! Welcome to the Medusa Storefront!\n"))
+
+  console.log("\nChecking environment variables...")
+
+  console.log("\nEnvironment variables:")
+  
+  console.log(process.env)
+
   const missingEnvs = requiredEnvs.filter(function (env) {
     return !process.env[env.key]
   })
