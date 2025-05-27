@@ -12,7 +12,7 @@
     "launcher": "launch-storefront",
     "dev": "npm run wait && npm run launcher dev",
     "dev:debug": "npm run wait && cross-env NODE_OPTIONS=\"--inspect=9230\" npm run launcher dev",
-    "build": "npm run prepare-models && npm run wait && npm run launcher build",
+    "build": "npm run wait && npm run launcher build",
     "start": "npm run launcher start",
     "build:next": "next build",
     "lint": "next lint",
