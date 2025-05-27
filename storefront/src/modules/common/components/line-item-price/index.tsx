@@ -76,7 +76,7 @@ const LineItemPrice = ({ item, style = "default" }: LineItemPriceProps) => {
   
   // For length-based products, calculate the total price from metadata
   const totalPrice = getLineItemTotalPrice(item)
-  const currencyCode = item.variant?.calculated_price?.currency_code || "USD"
+  const currencyCode = item.variant?.calculated_price?.currency_code || "CAD"
   
   const formattedTotalPrice = convertToLocale({
     amount: totalPrice,

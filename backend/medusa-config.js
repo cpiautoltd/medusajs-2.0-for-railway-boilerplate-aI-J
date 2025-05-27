@@ -30,8 +30,6 @@ import {
 } from 'lib/constants';
 import { EXTRUDED_PRODUCTS_MODULE } from 'modules/extruded-products';
 import { LENGTH_PRICING_MODULE } from 'modules/length-pricing';
-import { MACHINING_SERVICE_MODULE } from 'modules/machining';
-// import { MACHINING_SERVICE_MODULE } from 'modules/machining';
 
 loadEnv(process.env.NODE_ENV, process.cwd());
 
@@ -112,10 +110,6 @@ const medusaConfig = {
     {
       resolve: './src/modules/length-pricing',
       key: LENGTH_PRICING_MODULE
-    },
-    {
-      resolve: './src/modules/machining',
-      key: MACHINING_SERVICE_MODULE
     },
     ...(REDIS_URL ? [{
       key: Modules.EVENT_BUS,

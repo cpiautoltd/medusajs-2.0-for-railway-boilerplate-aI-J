@@ -1,5 +1,8 @@
 import { logger } from "@medusajs/framework";
-import { defineMiddlewares } from "@medusajs/framework/http";
+import { defineMiddlewares, validateAndTransformBody } from "@medusajs/framework/http";
+import { 
+  StoreAddCartLineItem,
+} from "@medusajs/medusa/api/store/carts/validators"
 import { z } from "zod";
 
 // Define enums matching the model
@@ -117,42 +120,62 @@ const machiningServicePutSchema = baseMachiningServiceSchema
     };
   });
 
+  const EndtapConfigSchema = z.object({
+  left: z.string().optional(),
+  right: z.string().optional()
+})
+
+export const StoreAddLengthBasedLineItemSchema = StoreAddCartLineItem.extend({
+  selectedLength: z.number().min(0, "Selected length must be greater than 0"),
+  endtapConfig: EndtapConfigSchema
+})
+
+
 export default defineMiddlewares({
   routes: [
     {
-
-      matcher: "/admin/products/:id",
-
-      method: "GET",
-
-      middlewares: [
-
-        (req, res, next) => {
-
-          logger.info("\n\n MIDDLEWARE REQUEST \n\n")
-          console.log(res.json())
-
-          next()
-
-        },
-
-      ],
-
-    },
-    {
+      matcher: "/store/carts/:id/line-items-length",
       method: "POST",
-      matcher: "/admin/products/:id",
-      additionalDataValidator: {
-        machining_services: z.array(machiningServicePostSchema).optional(),
-      },
+      middlewares: [
+        validateAndTransformBody(
+          StoreAddLengthBasedLineItemSchema
+        ),
+      ],
     },
-    {
-      method: "PUT",
-      matcher: "/admin/products/:id",
-      additionalDataValidator: {
-        machining_services: z.array(machiningServicePutSchema).optional(),
-      },
-    },
+    // {
+
+    //   matcher: "/admin/products/:id",
+
+    //   method: "GET",
+
+    //   middlewares: [
+
+    //     (req, res, next) => {
+
+    //       logger.info("\n\n MIDDLEWARE REQUEST \n\n")
+    //       console.log(res.json())
+
+    //       next()
+
+    //     },
+
+    //   ],
+
+    // },
+    // {
+    //   method: "POST",
+    //   matcher: "/admin/products/:id",
+    //   additionalDataValidator: {
+    //     machining_services: z.array(machiningServicePostSchema).optional(),
+    //   },
+    // },
+    // {
+    //   method: "PUT",
+    //   matcher: "/admin/products/:id",
+    //   additionalDataValidator: {
+    //     machining_services: z.array(machiningServicePutSchema).optional(),
+    //   },
+    // },
   ],
 });
 

@@ -13,11 +13,16 @@ export async function addLengthBasedToCart({
   quantity,
   selectedLength,
   countryCode,
+  endtapConfig = {}
 }: {
   variantId: string
   quantity: number
   selectedLength: number
   countryCode: string
+  endtapConfig?: {
+    left?: string,
+    right?: string
+  }
 }) {
   if (!variantId) {
     throw new Error("Missing variant ID when adding to cart")
@@ -45,7 +50,8 @@ export async function addLengthBasedToCart({
         body: JSON.stringify({
           variant_id: variantId,
           quantity,
-          selectedLength
+          selectedLength,
+          endtapConfig
         }),
       }
     )

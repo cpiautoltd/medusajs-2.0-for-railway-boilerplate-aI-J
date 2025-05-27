@@ -13,10 +13,10 @@ export const getLineItemUnitPrice = (
   
   if (lengthDetails) {
     // For length-based products, unit price is calculated from metadata
-    const { length, calculatedPrice } = lengthDetails
-    if (length && calculatedPrice) {
+    const { length } = lengthDetails
+    if (length) {
       // The unit price is the length price plus the cutting fee
-      return calculatedPrice
+      return item.unit_price
     } 
   }
   

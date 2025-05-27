@@ -28,14 +28,29 @@ const Item = ({ item, type = "full" }: ItemProps) => {
   const [error, setError] = useState<string | null>(null)
 
   const { handle } = item.variant?.product ?? {}
-  
+
   // Check if this is a length-based product by examining metadata
   const lengthDetails = extractLengthDetails(item.metadata)
   const isLengthBased = Boolean(lengthDetails)
 
-  console.log("Redering the cart item component for line item", item.cart_id);
+  console.log("Redering the cart item component for line item", item.cart_id)
 
-  console.log("\n +++++++++++++++++++++ \n The metadata is : ", item.metadata, " \n +++++++++++++++++++++ \n");
+  console.log(
+    "\n +++++++++++++++++++++ \n The Item is : ",
+    item,
+    " \n +++++++++++++++++++++ \n"
+  )
+
+  console.log(
+    "\n +++++++++++++++++++++ \n The metadata is : ",
+    item.metadata,
+    " \n +++++++++++++++++++++ \n"
+  )
+  console.log(
+    "\n +++++++++++++++++++++ \n The lengthDetails is : ",
+    lengthDetails,
+    " \n +++++++++++++++++++++ \n"
+  )
 
   const changeQuantity = async (quantity: number) => {
     setError(null)
@@ -82,14 +97,54 @@ const Item = ({ item, type = "full" }: ItemProps) => {
         >
           {item.product_title}
         </Text>
-        <LineItemOptions variant={item.variant} data-testid="product-variant" />
-        
+        {!isLengthBased && (
+          <LineItemOptions
+            variant={item.variant}
+            data-testid="product-variant"
+          />
+        )}
+
         {/* Display length information for length-based products */}
         {isLengthBased && lengthDetails && (
-  <Text className="text-ui-fg-subtle text-small-regular">
-    Length: {lengthDetails.length} {lengthDetails.unitType || "inch"}
-  </Text>
-)}
+          <div className="text-ui-fg-subtle text-small-regular space-y-1">
+            <Text className="block">
+              Length: {lengthDetails.length} {lengthDetails.unitType || "inch"}
+            </Text>
+
+            {/* Display endtap information if available */}
+            {lengthDetails.endtaps && (
+              <div>
+                <Text className="block font-medium">Endtaps:</Text>
+                <div className="ml-3 text-xs">
+                  {lengthDetails.endtaps.left && (
+                    <div>
+                      <strong>L:</strong>{" "}
+                      {
+                        lengthDetails.endtaps.left?.service_type?.split(
+                          " End Tap"
+                        )[0]
+                      }{" "}
+                      ({lengthDetails.endtaps.left?.tap_size}){" - $"}
+                      {lengthDetails.endtaps.left?.price}
+                    </div>
+                  )}
+                  {lengthDetails.endtaps.right && (
+                    <div>
+                      <strong>R:</strong>{" "}
+                      {
+                        lengthDetails.endtaps.right?.service_type?.split(
+                          " End Tap"
+                        )[0]
+                      }{" "}
+                      ({lengthDetails.endtaps.right?.tap_size}){" - $"}
+                      {lengthDetails.endtaps.right?.price}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </Table.Cell>
 
       {type === "full" && (

@@ -59,29 +59,74 @@ export const isValidLength = (
 /**
  * Extract length-based product details from cart item metadata
  */
-export const extractLengthDetails = (
-    metadata: Record<string, any> | null | undefined
-  ) => {
-    if (!metadata) {
-      return null;
-    }
+// export const extractLengthDetails = (
+//     metadata: Record<string, any> | null | undefined
+//   ) => {
+//     if (!metadata) {
+//       return null;
+//     }
   
-    // Check for the lengthPricing object structure with the properties we actually have
-    if (metadata.lengthPricing) {
-      return {
-        length: metadata.lengthPricing.selectedLength,
-        unitType: metadata.lengthPricing.unitType || 'inch', // Default to inch if not provided
-        calculatedPrice: metadata.lengthPricing.calculatedPrice
-      };
-    }
+//     // Check for the lengthPricing object structure with the properties we actually have
+//     if (metadata.lengthPricing) {
+//       return {
+//         length: metadata.lengthPricing.selectedLength,
+//         unitType: metadata.lengthPricing.unitType || 'inch', // Default to inch if not provided
+//         calculatedPrice: metadata.lengthPricing.calculatedPrice
+//       };
+//     }
   
-    // Legacy format - check if this is a length-based product by direct properties
-    if (metadata.length) {
-      return {
-        length: parseFloat(metadata.length),
-        unitType: metadata.unitType || 'inch'
-      };
-    }
+//     // Legacy format - check if this is a length-based product by direct properties
+//     if (metadata.length) {
+//       return {
+//         length: parseFloat(metadata.length),
+//         unitType: metadata.unitType || 'inch'
+//       };
+//     }
   
-    return null;
+//     return null;
+//   };
+
+// First, let's update the extractLengthDetails function to include endtap information
+// Add this to your length-based-utils.js file:
+
+export const extractLengthDetails = (metadata: Record<string, any> | null | undefined) => {
+  if (!metadata || !metadata.lengthPricing) return null;
+  
+  const lengthPricing = metadata.lengthPricing;
+  
+  // Extract endtap information if available
+  let endtaps = null;
+  if (lengthPricing.endtapConfig) {
+    const endtapConfig = lengthPricing.endtapConfig;
+    let endtapOptions = [];
+    
+    try {
+      if (typeof lengthPricing.endtap_options === 'string') {
+        endtapOptions = JSON.parse(lengthPricing.endtap_options);
+      } else if (Array.isArray(lengthPricing.endtap_options)) {
+        endtapOptions = lengthPricing.endtap_options;
+      }
+    } catch (e) {
+      console.error("Failed to parse endtap options:", e);
+    }
+    
+    // Find the endtap details based on the part numbers
+    const leftEndtap = endtapOptions.find((tap:any) => tap.part_no === endtapConfig.left);
+    const rightEndtap = endtapOptions.find((tap:any) => tap.part_no === endtapConfig.right);
+    
+    endtaps = {
+      left: leftEndtap,
+      right: rightEndtap,
+      config: endtapConfig
+    };
+  }
+  
+  return {
+    length: lengthPricing.selectedLength,
+    unitType: lengthPricing.unitType,
+    pricePerUnit: lengthPricing.pricePerUnit,
+    cutPrice: lengthPricing.cutPrice,
+    cut_code: lengthPricing.cut_code,
+    endtaps: endtaps
   };
+};

@@ -103,7 +103,11 @@ export const addLengthBasedToCartWorkflow = createWorkflow(
                 pricePerUnit: data.extrudedProduct.price_per_unit,
                 cutPrice: data.extrudedProduct.cut_price,
                 calculatedPrice: data.price,
-                
+                attached_product_id: data.extrudedProduct.attached_product_id,
+                cut_code: data.extrudedProduct.cut_code,
+                endtap_code: data.extrudedProduct.endtap_code,
+                endtap_options: data.extrudedProduct.endtap_options,
+                endtapConfig: data.item.endtapConfig
               },
             },
             unit_price: data.price,

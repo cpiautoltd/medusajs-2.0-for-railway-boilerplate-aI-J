@@ -15,7 +15,13 @@ import { HttpTypes } from "@medusajs/types"
 import { ExtendedProduct, ExtrudedProduct } from "types/global"
 import Input from "@modules/common/components/input"
 import Spinner from "@modules/common/icons/spinner"
-import { addLengthBasedToCart, calculateExtrudedPrice } from "@lib/data/cart-actions"
+import {
+  addLengthBasedToCart,
+  calculateExtrudedPrice,
+} from "@lib/data/cart-actions"
+import ExtrusionVisualizer from "@modules/products/components/extrusion-visualizer"
+import Extrusion3DViewer from "@modules/products/components/extrusion-3d-viewer"
+import EnhancedExtrusionViewer from "../enhanced-extrusion-viewer"
 
 type LengthBasedProductActionsProps = {
   product: ExtendedProduct
@@ -33,12 +39,19 @@ type TapOption = {
 }
 
 const optionsAsKeymap = (variantOptions: any) => {
-  return variantOptions?.reduce((acc: Record<string, string | undefined>, varopt: any) => {
-    if (varopt.option && varopt.value !== null && varopt.value !== undefined) {
-      acc[varopt.option.title] = varopt.value
-    }
-    return acc
-  }, {})
+  return variantOptions?.reduce(
+    (acc: Record<string, string | undefined>, varopt: any) => {
+      if (
+        varopt.option &&
+        varopt.value !== null &&
+        varopt.value !== undefined
+      ) {
+        acc[varopt.option.title] = varopt.value
+      }
+      return acc
+    },
+    {}
+  )
 }
 
 export default function LengthBasedProductActions({
@@ -54,26 +67,29 @@ export default function LengthBasedProductActions({
   )
 
   // End tap related state
-  const [isTapEndEnabled, setIsTapEndEnabled] = useState(product.extruded_products?.is_endtap_based || false)
+  const [isTapEndEnabled, setIsTapEndEnabled] = useState(
+    product.extruded_products?.is_endtap_based || false
+  )
   const [tapOptionLeft, setTapOptionLeft] = useState<string | null>(null)
   const [tapOptionRight, setTapOptionRight] = useState<string | null>(null)
   const [parsedTapOptions, setParsedTapOptions] = useState<TapOption[]>([])
   const [calculatedPrice, setCalculatedPrice] = useState<number | null>(null)
   const [priceError, setPriceError] = useState<string | null>(null)
+  const [viewMode, setViewMode] = useState<"2d" | "3d">("2d")
   const countryCode = useParams().countryCode as string
 
   // Parse the end tap options from JSON string
   useEffect(() => {
     if (isTapEndEnabled && product.extruded_products?.endtap_options) {
       try {
-        const options = JSON.parse(product.extruded_products.endtap_options);
-        setParsedTapOptions(options);
+        const options = JSON.parse(product.extruded_products.endtap_options)
+        setParsedTapOptions(options)
       } catch (error) {
-        console.error("Error parsing end tap options:", error);
-        setParsedTapOptions([]);
+        console.error("Error parsing end tap options:", error)
+        setParsedTapOptions([])
       }
     }
-  }, [isTapEndEnabled, product.extruded_products?.endtap_options]);
+  }, [isTapEndEnabled, product.extruded_products?.endtap_options])
 
   // If there is only 1 variant, preselect the options
   useEffect(() => {
@@ -114,19 +130,24 @@ export default function LengthBasedProductActions({
 
       try {
         const extrudedProduct = product.extruded_products as ExtrudedProduct
-        
-        console.log(extrudedProduct);
+
+        console.log(extrudedProduct)
 
         // Validate length is within allowed range
-        if (selectedLength < extrudedProduct.minLength || selectedLength > extrudedProduct.maxLength) {
-          setPriceError(`Length must be between ${extrudedProduct.minLength} and ${extrudedProduct.maxLength} ${extrudedProduct.unitType}`)
+        if (
+          selectedLength < extrudedProduct.minLength ||
+          selectedLength > extrudedProduct.maxLength
+        ) {
+          setPriceError(
+            `Length must be between ${extrudedProduct.minLength} and ${extrudedProduct.maxLength} ${extrudedProduct.unitType}`
+          )
           setCalculatedPrice(null)
           setCalculatingPrice(false)
           return
         }
 
         // Build the endtap configuration
-        let endtapConfig: {left?: string, right?: string} = {}
+        let endtapConfig: { left?: string; right?: string } = {}
         if (tapOptionLeft) {
           endtapConfig.left = tapOptionLeft
         }
@@ -134,13 +155,20 @@ export default function LengthBasedProductActions({
           endtapConfig.right = tapOptionRight
         }
 
-        console.log("Sending request to calculateExtrudedPrice with options ; ", `\n variantID : ${selectedVariant.id}`, "\nselectedLEngth: ", selectedLength, "\nendTapConfig", endtapConfig)
+        console.log(
+          "Sending request to calculateExtrudedPrice with options ; ",
+          `\n variantID : ${selectedVariant.id}`,
+          "\nselectedLEngth: ",
+          selectedLength,
+          "\nendTapConfig",
+          endtapConfig
+        )
 
-        const {calculated_price} = await calculateExtrudedPrice({
+        const { calculated_price } = await calculateExtrudedPrice({
           variantId: selectedVariant.id,
           selectedLength,
           quantity: 1,
-          endtapConfig
+          endtapConfig,
         })
 
         setCalculatedPrice(calculated_price)
@@ -156,7 +184,14 @@ export default function LengthBasedProductActions({
     if (selectedVariant?.id && selectedLength) {
       calculatePrice()
     }
-  }, [selectedVariant?.id, selectedLength, tapOptionLeft, tapOptionRight, product.extruded_products, region.currency_code])
+  }, [
+    selectedVariant?.id,
+    selectedLength,
+    tapOptionLeft,
+    tapOptionRight,
+    product.extruded_products,
+    region.currency_code,
+  ])
 
   // check if the selected variant is in stock
   const inStock = useMemo(() => {
@@ -194,7 +229,7 @@ export default function LengthBasedProductActions({
 
     try {
       // Build the endtap configuration
-      let endtapConfig: {left?: string, right?: string} = {}
+      let endtapConfig: { left?: string; right?: string } = {}
       if (tapOptionLeft) {
         endtapConfig.left = tapOptionLeft
       }
@@ -208,11 +243,11 @@ export default function LengthBasedProductActions({
         quantity: 1,
         selectedLength,
         countryCode,
-        // endtapConfig
-      }) 
-      
+        endtapConfig,
+      })
+
       if (!response.success) {
-        throw new Error('Failed to add item to cart')
+        throw new Error("Failed to add item to cart")
       }
     } catch (error) {
       console.error("Error adding to cart:", error)
@@ -231,39 +266,46 @@ export default function LengthBasedProductActions({
       minLength: details.minLength,
       maxLength: details.maxLength,
       pricePerUnit: details.price_per_unit,
-      cutPrice: details.cut_price
+      cutPrice: details.cut_price,
     }
   }, [product.extruded_products])
 
   // Clear tap option when deselected
-  const handleTapOptionChange = (side: 'left' | 'right', partNo: string | null) => {
-    if (side === 'left') {
-      setTapOptionLeft(partNo);
+  const handleTapOptionChange = (
+    side: "left" | "right",
+    partNo: string | null
+  ) => {
+    if (side === "left") {
+      setTapOptionLeft(partNo)
     } else {
-      setTapOptionRight(partNo);
+      setTapOptionRight(partNo)
     }
-  };
+  }
 
   // Calculate additional price from tap options
   const calculateTapOptionsPrice = () => {
-    let tapPrice = 0;
-    
+    let tapPrice = 0
+
     if (tapOptionLeft) {
-      const leftOption = parsedTapOptions.find(opt => opt.part_no === tapOptionLeft);
+      const leftOption = parsedTapOptions.find(
+        (opt) => opt.part_no === tapOptionLeft
+      )
       if (leftOption) {
-        tapPrice += leftOption.price;
+        tapPrice += leftOption.price
       }
     }
-    
+
     if (tapOptionRight) {
-      const rightOption = parsedTapOptions.find(opt => opt.part_no === tapOptionRight);
+      const rightOption = parsedTapOptions.find(
+        (opt) => opt.part_no === tapOptionRight
+      )
       if (rightOption) {
-        tapPrice += rightOption.price;
+        tapPrice += rightOption.price
       }
     }
-    
-    return tapPrice;
-  };
+
+    return tapPrice
+  }
 
   return (
     <>
@@ -307,16 +349,17 @@ export default function LengthBasedProductActions({
               required
               data-testid="length-input"
             />
-            
+
             {priceError && (
               <div className="text-rose-500 text-sm" data-testid="length-error">
                 {priceError}
               </div>
             )}
-            
+
             <div className="text-small-regular text-ui-fg-subtle">
-              Base price: ${extrudedProductDetails?.pricePerUnit.toFixed(2)} per {extrudedProductDetails?.unitType} + 
-              ${extrudedProductDetails?.cutPrice.toFixed(2)} cutting fee
+              Base price: ${extrudedProductDetails?.pricePerUnit.toFixed(2)} per{" "}
+              {extrudedProductDetails?.unitType} + $
+              {extrudedProductDetails?.cutPrice.toFixed(2)} cutting fee
             </div>
           </div>
         </div>
@@ -325,11 +368,9 @@ export default function LengthBasedProductActions({
         {isTapEndEnabled && parsedTapOptions.length > 0 && (
           <div className="flex flex-col gap-y-4 mb-4">
             <Divider />
-            
-            <div className="text-sm font-medium">
-              End Tap Options
-            </div>
-            
+
+            <div className="text-sm font-medium">End Tap Options</div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Left End Tap Selection */}
               <div className="flex flex-col gap-y-2">
@@ -340,30 +381,42 @@ export default function LengthBasedProductActions({
                       type="checkbox"
                       id="no-left-tap"
                       checked={tapOptionLeft === null}
-                      onChange={() => handleTapOptionChange('left', null)}
+                      onChange={() => handleTapOptionChange("left", null)}
                       className="h-4 w-4"
                     />
-                    <label htmlFor="no-left-tap" className="text-sm">None</label>
+                    <label htmlFor="no-left-tap" className="text-sm">
+                      None
+                    </label>
                   </div>
-                  
+
                   {parsedTapOptions.map((option) => (
-                    <div key={`left-${option.part_no}`} className="flex items-center space-x-2">
+                    <div
+                      key={`left-${option.part_no}`}
+                      className="flex items-center space-x-2"
+                    >
                       <input
                         type="checkbox"
                         id={`left-${option.part_no}`}
                         checked={tapOptionLeft === option.part_no}
-                        onChange={() => handleTapOptionChange('left', option.part_no)}
+                        onChange={() =>
+                          handleTapOptionChange("left", option.part_no)
+                        }
                         className="h-4 w-4"
                       />
-                      <label htmlFor={`left-${option.part_no}`} className="text-sm flex-1">
+                      <label
+                        htmlFor={`left-${option.part_no}`}
+                        className="text-sm flex-1"
+                      >
                         {option.service_type} ({option.tap_size})
                       </label>
-                      <span className="text-sm font-medium">${option.price.toFixed(2)}</span>
+                      <span className="text-sm font-medium">
+                        ${option.price.toFixed(2)}
+                      </span>
                     </div>
                   ))}
                 </div>
               </div>
-              
+
               {/* Right End Tap Selection */}
               <div className="flex flex-col gap-y-2">
                 <div className="text-xs font-medium">Right End</div>
@@ -373,79 +426,130 @@ export default function LengthBasedProductActions({
                       type="checkbox"
                       id="no-right-tap"
                       checked={tapOptionRight === null}
-                      onChange={() => handleTapOptionChange('right', null)}
+                      onChange={() => handleTapOptionChange("right", null)}
                       className="h-4 w-4"
                     />
-                    <label htmlFor="no-right-tap" className="text-sm">None</label>
+                    <label htmlFor="no-right-tap" className="text-sm">
+                      None
+                    </label>
                   </div>
-                  
+
                   {parsedTapOptions.map((option) => (
-                    <div key={`right-${option.part_no}`} className="flex items-center space-x-2">
+                    <div
+                      key={`right-${option.part_no}`}
+                      className="flex items-center space-x-2"
+                    >
                       <input
                         type="checkbox"
                         id={`right-${option.part_no}`}
                         checked={tapOptionRight === option.part_no}
-                        onChange={() => handleTapOptionChange('right', option.part_no)}
+                        onChange={() =>
+                          handleTapOptionChange("right", option.part_no)
+                        }
                         className="h-4 w-4"
                       />
-                      <label htmlFor={`right-${option.part_no}`} className="text-sm flex-1">
+                      <label
+                        htmlFor={`right-${option.part_no}`}
+                        className="text-sm flex-1"
+                      >
                         {option.service_type} ({option.tap_size})
                       </label>
-                      <span className="text-sm font-medium">${option.price.toFixed(2)}</span>
+                      <span className="text-sm font-medium">
+                        ${option.price.toFixed(2)}
+                      </span>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
-            
+
             {/* End Tap Preview */}
             <div className="bg-gray-50 p-4 rounded-md">
-              <div className="flex flex-col md:flex-row justify-between items-center gap-2">
-                {/* Left End */}
-                <div className="text-center md:text-left">
-                  {tapOptionLeft ? (
-                    <div>
-                      <div className="text-xs text-gray-500">Left End</div>
-                      <div className="font-medium text-sm">
-                        {parsedTapOptions.find(o => o.part_no === tapOptionLeft)?.service_type}
-                      </div>
-                      <div className="text-xs">
-                        {parsedTapOptions.find(o => o.part_no === tapOptionLeft)?.tap_size}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-sm text-gray-500">No left end tap</div>
-                  )}
-                </div>
-                
-                {/* Middle (extrusion representation) */}
-                <div className="flex-1 min-w-[100px] h-8 bg-gray-300 rounded-md mx-2 flex items-center justify-center">
-                  <span className="text-xs text-gray-600">{selectedLength} {extrudedProductDetails?.unitType}</span>
-                </div>
-                
-                {/* Right End */}
-                <div className="text-center md:text-right">
-                  {tapOptionRight ? (
-                    <div>
-                      <div className="text-xs text-gray-500">Right End</div>
-                      <div className="font-medium text-sm">
-                        {parsedTapOptions.find(o => o.part_no === tapOptionRight)?.service_type}
-                      </div>
-                      <div className="text-xs">
-                        {parsedTapOptions.find(o => o.part_no === tapOptionRight)?.tap_size}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-sm text-gray-500">No right end tap</div>
-                  )}
+              <div className="flex justify-end mb-2">
+                <div className="inline-flex rounded-md shadow-sm" role="group">
+                  <button
+                    type="button"
+                    onClick={() => setViewMode("2d")}
+                    className={`px-4 py-2 text-sm font-medium border border-gray-200 rounded-l-lg ${
+                      viewMode === "2d"
+                        ? "bg-gray-200 text-gray-900"
+                        : "bg-white text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    2D View
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setViewMode("3d")}
+                    className={`px-4 py-2 text-sm font-medium border border-gray-200 rounded-r-lg ${
+                      viewMode === "3d"
+                        ? "bg-gray-200 text-gray-900"
+                        : "bg-white text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    3D View
+                  </button>
                 </div>
               </div>
+              {viewMode === "3d" ? (
+                <EnhancedExtrusionViewer
+                  modelId={"8020-1001"} // Use the model ID from your product
+                  length={selectedLength}
+                  leftTap={!!tapOptionLeft}
+                  rightTap={!!tapOptionRight}
+                  color={
+                    selectedVariant?.options?.find((o) =>
+                      o.option?.title?.toLowerCase().includes("color")
+                    )?.value || "#A9A9A9"
+                  }
+                  lod="medium"
+                  fallbackToGeneric={true}
+                />
+              ) : (
+                <ExtrusionVisualizer
+                  length={selectedLength}
+                  unitType={extrudedProductDetails?.unitType || "inch"}
+                  leftTap={
+                    tapOptionLeft
+                      ? {
+                          partNo: tapOptionLeft,
+                          service_type: parsedTapOptions.find(
+                            (o) => o.part_no === tapOptionLeft
+                          )?.service_type,
+                          tap_size: parsedTapOptions.find(
+                            (o) => o.part_no === tapOptionLeft
+                          )?.tap_size,
+                        }
+                      : null
+                  }
+                  rightTap={
+                    tapOptionRight
+                      ? {
+                          partNo: tapOptionRight,
+                          service_type: parsedTapOptions.find(
+                            (o) => o.part_no === tapOptionRight
+                          )?.service_type,
+                          tap_size: parsedTapOptions.find(
+                            (o) => o.part_no === tapOptionRight
+                          )?.tap_size,
+                        }
+                      : null
+                  }
+                  productImage={product.thumbnail || undefined}
+                  color={
+                    selectedVariant?.options?.find((o) =>
+                      o.option?.title?.toLowerCase().includes("color")
+                    )?.value || "#A9A9A9"
+                  }
+                />
+              )}
             </div>
-            
+
             {/* End Tap Cost Summary */}
             {(tapOptionLeft || tapOptionRight) && (
               <div className="text-small-regular text-ui-fg-subtle">
-                Additional end tap cost: ${calculateTapOptionsPrice().toFixed(2)}
+                Additional end tap cost: $
+                {calculateTapOptionsPrice().toFixed(2)}
               </div>
             )}
           </div>
@@ -470,11 +574,11 @@ export default function LengthBasedProductActions({
         <Button
           onClick={handleAddToCart}
           disabled={
-            !inStock || 
-            !selectedVariant || 
-            !!disabled || 
-            isAdding || 
-            calculatingPrice || 
+            !inStock ||
+            !selectedVariant ||
+            !!disabled ||
+            isAdding ||
+            calculatingPrice ||
             calculatedPrice === null ||
             !!priceError
           }
@@ -486,14 +590,14 @@ export default function LengthBasedProductActions({
           {!selectedVariant
             ? "Select variant"
             : !inStock
-              ? "Out of stock"
-              : calculatingPrice
-                ? "Calculating price..."
-                : priceError
-                  ? "Invalid length"
-                  : "Add to cart"}
+            ? "Out of stock"
+            : calculatingPrice
+            ? "Calculating price..."
+            : priceError
+            ? "Invalid length"
+            : "Add to cart"}
         </Button>
-        
+
         <MobileActions
           product={product}
           variant={selectedVariant}
