@@ -12,7 +12,7 @@
     "launcher": "launch-storefront",
     "dev": "npm run wait && npm run launcher dev",
     "dev:debug": "npm run wait && cross-env NODE_OPTIONS=\"--inspect=9230\" npm run launcher dev",
-    "build": "npm run wait && npm run launcher build",
+    "build": "npm run wait && rimraf .next && npm run launcher build",
     "start": "npm run launcher start",
     "build:next": "next build",
     "lint": "next lint",
@@ -74,6 +74,7 @@
     "eslint-config-next": "^13.4.5",
     "postcss": "^8.4.8",
     "prettier": "^2.8.8",
+    "rimraf": "^6.0.1",
     "tailwindcss": "^3.0.23",
     "typescript": "^5.3.2"
   }
