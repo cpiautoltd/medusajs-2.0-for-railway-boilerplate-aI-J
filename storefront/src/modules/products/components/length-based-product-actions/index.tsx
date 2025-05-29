@@ -173,7 +173,7 @@ export default function LengthBasedProductActions({
 
         setCalculatedPrice(calculated_price)
       } catch (error) {
-        console.error("Error calculating price:", error)
+        console.error("Error calculating price @ LengthBasedProductActions:", error)
         setPriceError("Unable to calculate price")
         setCalculatedPrice(null)
       } finally {

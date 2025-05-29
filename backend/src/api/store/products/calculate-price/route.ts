@@ -151,7 +151,7 @@ export const POST = async (
       },
     });
   } catch (error) {
-    console.error("Error calculating price:", error);
+    console.error("Error calculating price: api/store/products/calculate-price", error);
 
     // Handle different types of errors
     if (error instanceof z.ZodError) {

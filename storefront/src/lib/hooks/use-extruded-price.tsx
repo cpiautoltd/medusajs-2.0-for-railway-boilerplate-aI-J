@@ -40,7 +40,7 @@ export const useExtrudedPrice = (
         
         setCalculatedPrice(finalPrice)
       } catch (err) {
-        console.error("Error calculating price:", err)
+        console.error("Error calculating price useExtrudedPriceWithAPI A:", err)
         setError("Failed to calculate price. Please try again.")
       } finally {
         setIsLoading(false)
@@ -103,7 +103,7 @@ export const useExtrudedPriceWithAPI = (
         const data = await response.json()
         setCalculatedPrice(data.calculated_price)
       } catch (err) {
-        console.error("Error calculating price:", err)
+        console.error("Error calculating price useExtrudedPriceWithAPI B:", err)
         setError("Failed to calculate price. Please try again.")
       } finally {
         setIsLoading(false)

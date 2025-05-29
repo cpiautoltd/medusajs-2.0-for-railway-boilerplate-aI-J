@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     const data = await response.json()
     return NextResponse.json(data)
   } catch (error) {
-    console.error("Error calculating price:", error)
+    console.error("Error calculating price: api/store/products/calculate-price", error)
     return NextResponse.json(
       { message: "Internal server error" },
       { status: 500 }

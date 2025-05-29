@@ -96,7 +96,7 @@ export async function calculateExtrudedPrice({
     throw new Error("Missing required parameters for price calculation")
   }
 
-  debugger;
+  // debugger;
 
   try {
     const response = await fetch(
@@ -117,9 +117,10 @@ export async function calculateExtrudedPrice({
       }
     )
 
-    // console.log("response at calculateExtrudedPrice : ", response)
+    console.log("response at calculateExtrudedPrice : ", response)
 
     if (!response.ok) {
+      console.log("!!!!!!!!!!! RESPONSE NOT OK!!!!!!!!!!!!!!!!")
       const errorData = await response.json()
       throw new Error(errorData.message || "Failed to calculate price")
     }
@@ -129,7 +130,7 @@ export async function calculateExtrudedPrice({
     // console.log("data at calculateExtrudedPrice : ", data)
     return data
   } catch (error) {
-    console.error("Error calculating price:", error)
+    console.error("Error calculating price: calculateExtrudedPrice", error)
     throw medusaError(error)
   }
 }

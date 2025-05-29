@@ -68,7 +68,9 @@ const LineItemUnitPrice = ({
   const unitPrice = getLineItemUnitPrice(item)
   const formattedUnitPrice = convertToLocale({
     amount: unitPrice,
-    currency_code: item.variant?.calculated_price?.currency_code || "USD",
+    currency_code: item.variant?.calculated_price?.currency_code?.toUpperCase() || "CAD",
+    minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
   })
   
   return (

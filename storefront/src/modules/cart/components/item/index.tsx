@@ -72,6 +72,22 @@ const Item = ({ item, type = "full" }: ItemProps) => {
   const maxQtyFromInventory = 100
   const maxQuantity = item.variant?.manage_inventory ? 100 : maxQtyFromInventory
 
+  const leftTapPrice = convertToLocale({
+    amount: lengthDetails?.endtaps?.left?.price,
+    currency_code:
+      item.variant?.calculated_price?.currency_code?.toUpperCase() || "CAD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
+
+  const rightTapPrice = convertToLocale({
+    amount: lengthDetails?.endtaps?.right?.price,
+    currency_code:
+      item.variant?.calculated_price?.currency_code?.toUpperCase() || "CAD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
+
   return (
     <Table.Row className="w-full" data-testid="product-row">
       <Table.Cell className="!pl-0 p-4 w-24">
@@ -112,7 +128,7 @@ const Item = ({ item, type = "full" }: ItemProps) => {
             </Text>
 
             {/* Display endtap information if available */}
-            {lengthDetails.endtaps && (
+            {(lengthDetails.endtaps?.left || lengthDetails.endtaps?.right) && (
               <div>
                 <Text className="block font-medium">Endtaps:</Text>
                 <div className="ml-3 text-xs">
@@ -124,8 +140,8 @@ const Item = ({ item, type = "full" }: ItemProps) => {
                           " End Tap"
                         )[0]
                       }{" "}
-                      ({lengthDetails.endtaps.left?.tap_size}){" - $"}
-                      {lengthDetails.endtaps.left?.price}
+                      ({lengthDetails.endtaps.left?.tap_size}){" - "}
+                      {leftTapPrice}
                     </div>
                   )}
                   {lengthDetails.endtaps.right && (
@@ -136,8 +152,8 @@ const Item = ({ item, type = "full" }: ItemProps) => {
                           " End Tap"
                         )[0]
                       }{" "}
-                      ({lengthDetails.endtaps.right?.tap_size}){" - $"}
-                      {lengthDetails.endtaps.right?.price}
+                      ({lengthDetails.endtaps.right?.tap_size}){" - "}
+                      {leftTapPrice}
                     </div>
                   )}
                 </div>
