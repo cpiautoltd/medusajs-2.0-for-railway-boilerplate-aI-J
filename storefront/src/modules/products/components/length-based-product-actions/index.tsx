@@ -486,11 +486,11 @@ export default function LengthBasedProductActions({
             </div>
           </div>
 
-<div className="mt-6">
-          <div className="text-sm font-semibold text-gray-600">
-            Length Options
+          <div className="mt-6">
+            <div className="text-sm font-semibold text-gray-600">
+              Length Options
+            </div>
           </div>
-        </div>
           <div className="mt-2 bg-white rounded-md py-4 px-6 space-y-4 shadow-sm border border-gray-200">
             <div className="flex flex-row items-center gap-4">
               <div className="relative flex-1">
@@ -501,42 +501,43 @@ export default function LengthBasedProductActions({
                   onChange={(e) =>
                     handleLengthChange(parseFloat(e.target.value) || 0, true)
                   }
+                   onFocus={(e) => e.target.select()}
                   min={minDisplayLength}
                   max={maxDisplayLength}
                   step={displayUnit === "inch" ? 0.01 : 1}
-                  className="w-full px-4 py-3 text-center text-lg font-medium bg-gray-50 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none pr-20"
+                  className="w-full px-4 py-3 text-center text-lg font-semibold bg-gray-50 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none pr-20"
                   style={{
                     WebkitAppearance: "none",
                     MozAppearance: "textfield",
                   }}
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 text-right leading-tight">
-                  <div>
-                    {displayUnit === baseUnitType
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-600 text-right leading-tight">
+                  <div className="font-semibold text-[12px]">
+                    $ {displayUnit === baseUnitType
                       ? product.extruded_products?.price_per_unit || 0
                       : convertUnitPrice(
                           product.extruded_products?.price_per_unit || 0,
                           baseUnitType
                         ).converted}
                   </div>
-                  <div className="text-[11px] text-gray-400">
+                  <div className="text-[10px] text-gray-500">
                     / {displayUnit}
                   </div>
                 </span>
               </div>
 
               <div className="grid grid-rows-2 gap-1 text-[10px] text-gray-500">
-                <div className="flex justify-between items-center w-full gap-1">
+                <div className="order-2 flex justify-between items-center w-full gap-1">
                   <span className="font-medium text-gray-700">
                     {formatExtrusionMinMaxLength(minDisplayLength)}
                   </span>
-                  <span className="font-medium">Min</span>
+                  <span className="font-medium text-[8px]">Min</span>
                 </div>
-                <div className="flex justify-between items-center w-full gap-1">
+                <div className="order-1 flex justify-between items-center w-full gap-1">
                   <span className="font-medium text-gray-700">
                     {formatExtrusionMinMaxLength(maxDisplayLength)}
                   </span>
-                  <span className="font-medium rounded-sm">Max</span>
+                  <span className="font-medium text-[8px]">Max</span>
                 </div>
               </div>
             </div>

@@ -4,7 +4,7 @@ import ProductPreview from "@modules/products/components/product-preview"
 import { Pagination } from "@modules/store/components/pagination"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
 
-const PRODUCT_LIMIT = 12
+const PRODUCT_LIMIT = 18
 
 type PaginatedProductsParams = {
   limit: number
@@ -82,7 +82,7 @@ export default async function PaginatedProducts({
       ) : (
         <>
           <ul
-            className="grid grid-cols-2 w-full small:grid-cols-3 medium:grid-cols-4 gap-x-6 gap-y-8"
+            className="grid grid-cols-2 w-full small:grid-cols-4 medium:grid-cols-6 gap-x-3 gap-y-3"
             data-testid="products-list"
           >
             {products.map((p) => {
@@ -98,6 +98,8 @@ export default async function PaginatedProducts({
               data-testid="product-pagination"
               page={page}
               totalPages={totalPages}
+              totalResults={count}
+              perPage={PRODUCT_LIMIT}
             />
           )}
         </>

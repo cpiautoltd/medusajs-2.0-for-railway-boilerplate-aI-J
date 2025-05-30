@@ -1,33 +1,31 @@
 "use client"
 
-import { clx } from "@medusajs/ui"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { clx } from "@medusajs/ui"
 
 export function Pagination({
   page,
   totalPages,
-  'data-testid': dataTestid
+  totalResults,
+  perPage,
+  "data-testid": dataTestid,
 }: {
   page: number
   totalPages: number
-  'data-testid'?: string
+  totalResults: number
+  perPage: number
+  "data-testid"?: string
 }) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
-  // Helper function to generate an array of numbers within a range
-  const arrayRange = (start: number, stop: number) =>
-    Array.from({ length: stop - start + 1 }, (_, index) => start + index)
-
-  // Function to handle page changes
   const handlePageChange = (newPage: number) => {
     const params = new URLSearchParams(searchParams)
     params.set("page", newPage.toString())
     router.push(`${pathname}?${params.toString()}`)
   }
 
-  // Function to render a page button
   const renderPageButton = (
     p: number,
     label: string | number,
@@ -35,80 +33,100 @@ export function Pagination({
   ) => (
     <button
       key={p}
-      className={clx("txt-xlarge-plus text-ui-fg-muted", {
-        "text-ui-fg-base hover:text-ui-fg-subtle": isCurrent,
-      })}
-      disabled={isCurrent}
       onClick={() => handlePageChange(p)}
+      disabled={isCurrent}
+      className={clx(
+        "px-3 py-1 rounded-md text-sm font-medium transition-colors",
+        isCurrent
+          ? "bg-gray-900 text-white cursor-default"
+          : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
+      )}
     >
       {label}
     </button>
   )
 
-  // Function to render ellipsis
   const renderEllipsis = (key: string) => (
-    <span
-      key={key}
-      className="txt-xlarge-plus text-ui-fg-muted items-center cursor-default"
-    >
+    <span key={key} className="px-2 text-gray-400">
       ...
     </span>
   )
 
-  // Function to render page buttons based on the current page and total pages
   const renderPageButtons = () => {
     const buttons = []
-
     if (totalPages <= 7) {
-      // Show all pages
       buttons.push(
-        ...arrayRange(1, totalPages).map((p) =>
-          renderPageButton(p, p, p === page)
+        ...Array.from({ length: totalPages }, (_, i) =>
+          renderPageButton(i + 1, i + 1, page === i + 1)
         )
       )
     } else {
-      // Handle different cases for displaying pages and ellipses
       if (page <= 4) {
-        // Show 1, 2, 3, 4, 5, ..., lastpage
         buttons.push(
-          ...arrayRange(1, 5).map((p) => renderPageButton(p, p, p === page))
+          ...Array.from({ length: 5 }, (_, i) =>
+            renderPageButton(i + 1, i + 1, page === i + 1)
+          )
         )
-        buttons.push(renderEllipsis("ellipsis1"))
+        buttons.push(renderEllipsis("e1"))
         buttons.push(
-          renderPageButton(totalPages, totalPages, totalPages === page)
+          renderPageButton(totalPages, totalPages, page === totalPages)
         )
       } else if (page >= totalPages - 3) {
-        // Show 1, ..., lastpage - 4, lastpage - 3, lastpage - 2, lastpage - 1, lastpage
-        buttons.push(renderPageButton(1, 1, 1 === page))
-        buttons.push(renderEllipsis("ellipsis2"))
+        buttons.push(renderPageButton(1, 1, page === 1))
+        buttons.push(renderEllipsis("e2"))
         buttons.push(
-          ...arrayRange(totalPages - 4, totalPages).map((p) =>
-            renderPageButton(p, p, p === page)
+          ...Array.from({ length: 5 }, (_, i) =>
+            renderPageButton(
+              totalPages - 4 + i,
+              totalPages - 4 + i,
+              page === totalPages - 4 + i
+            )
           )
         )
       } else {
-        // Show 1, ..., page - 1, page, page + 1, ..., lastpage
-        buttons.push(renderPageButton(1, 1, 1 === page))
-        buttons.push(renderEllipsis("ellipsis3"))
+        buttons.push(renderPageButton(1, 1, page === 1))
+        buttons.push(renderEllipsis("e3"))
+        buttons.push(renderPageButton(page - 1, page - 1, false))
+        buttons.push(renderPageButton(page, page, true))
+        buttons.push(renderPageButton(page + 1, page + 1, false))
+        buttons.push(renderEllipsis("e4"))
         buttons.push(
-          ...arrayRange(page - 1, page + 1).map((p) =>
-            renderPageButton(p, p, p === page)
-          )
-        )
-        buttons.push(renderEllipsis("ellipsis4"))
-        buttons.push(
-          renderPageButton(totalPages, totalPages, totalPages === page)
+          renderPageButton(totalPages, totalPages, page === totalPages)
         )
       }
     }
-
     return buttons
   }
 
-  // Render the component
+  const start = (page - 1) * perPage + 1
+  const end = Math.min(start + perPage - 1, totalResults)
+
   return (
-    <div className="flex justify-center w-full mt-12">
-      <div className="flex gap-3 items-end" data-testid={dataTestid}>{renderPageButtons()}</div>
+    <div className="flex flex-col items-center justify-between w-full gap-4 mt-12">
+      <div className="text-sm text-gray-600">
+        Showing <span className="font-medium">{start}</span>–
+        <span className="font-medium">{end}</span> of{" "}
+        <span className="font-medium">{totalResults}</span> results
+      </div>
+      <div className="flex items-center gap-2" data-testid={dataTestid}>
+        <button
+          onClick={() => handlePageChange(page - 1)}
+          disabled={page <= 1}
+          className="px-3 py-1 text-sm rounded-md bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Prev
+        </button>
+
+        {renderPageButtons()}
+
+        <button
+          onClick={() => handlePageChange(page + 1)}
+          disabled={page >= totalPages}
+          className="px-3 py-1 text-sm rounded-md bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Next
+        </button>
+      </div>
     </div>
   )
 }

@@ -10,7 +10,7 @@ const StoreTemplate = ({
   sortBy,
   page,
   countryCode,
-  category_id
+  category_id,
 }: {
   sortBy?: SortOptions
   page?: string
@@ -18,9 +18,9 @@ const StoreTemplate = ({
   category_id: string | undefined
 }) => {
   const pageNumber = page ? parseInt(page) : 1
-  const sort = sortBy || "created_at"
+  const sort = sortBy || "title"
 
-  console.log("INside store template and the category ID is :", category_id)
+  console.log("INside store template and the SORT is :", sort)
 
   return (
     <div
@@ -29,9 +29,6 @@ const StoreTemplate = ({
     >
       <RefinementList sortBy={sort} data-testid="refinement-list" />
       <div className="w-full">
-        <div className="mb-8 text-2xl-semi">
-          <h1 data-testid="store-page-title">All products</h1>
-        </div>
         <Suspense fallback={<SkeletonProductGrid />}>
           <PaginatedProducts
             sortBy={sort}

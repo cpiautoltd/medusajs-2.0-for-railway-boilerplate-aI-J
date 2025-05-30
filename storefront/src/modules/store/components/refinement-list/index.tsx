@@ -43,7 +43,7 @@ const RefinementList = ({
         setQueryParams={setQueryParams}
         data-testid={`${dataTestId}-sort`} 
       />
-      <CategoryFilter data-testid={`${dataTestId}-category-filter`} />
+      {/* <CategoryFilter data-testid={`${dataTestId}-category-filter`} /> */}
     </div>
   )
 }
