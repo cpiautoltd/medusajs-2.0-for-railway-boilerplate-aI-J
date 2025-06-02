@@ -15,6 +15,7 @@ const SideMenuItems = {
   Search: "/search",
   Account: "/account",
   Cart: "/cart",
+    "Import BOM": "/bom-import", // Add this line
 }
 
 const SideMenu = ({ regions }: { regions: HttpTypes.StoreRegion[] | null }) => {
