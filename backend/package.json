@@ -18,7 +18,8 @@
     "ib": "init-backend",
     "start": "cd .medusa/server && medusa start --verbose",
     "dev": "medusa develop",
-    "email:dev": "email dev --dir=./src/modules/email-notifications/templates --port=3002"
+    "email:dev": "email dev --dir=./src/modules/email-notifications/templates --port=3002",
+    "dev:email": "email dev --dir ./src/modules/resend/emails"
   },
   "dependencies": {
     "@medusajs/admin-sdk": "latest",
@@ -34,14 +35,14 @@
     "@mikro-orm/knex": "6.4.3",
     "@mikro-orm/migrations": "6.4.3",
     "@mikro-orm/postgresql": "6.4.3",
-    "@react-email/components": "^0.0.26",
+    "@react-email/components": "0.0.41",
     "@rokmohar/medusa-plugin-meilisearch": "^1.0.3",
     "awilix": "^8.0.1",
     "lucide-react": "^0.511.0",
     "medusajs-launch-utils": "^0.0.15",
     "minio": "^8.0.3",
     "pg": "^8.13.1",
-    "resend": "4.0.1",
+    "resend": "^4.5.2",
     "ulid": "^2.3.0",
     "zod": "3.22.4"
   },
@@ -63,7 +64,7 @@
     "typescript": "^5.7.2",
     "vite": "^5.4.11"
   },
-  "packageManager": "pnpm@10.11.0",
+  "packageManager": "pnpm@10.11.1",
   "engines": {
     "node": "22.x",
     "npm": "10.x"
