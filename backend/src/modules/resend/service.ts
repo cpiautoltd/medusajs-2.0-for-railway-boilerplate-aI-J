@@ -12,13 +12,19 @@ import {
   Resend
 } from "resend";
 import { orderPlacedEmail } from "./emails/order-placed";
+import { customerWelcomeEmail } from "./emails/customer-welcome";
+import { passwordResetEmail } from "./emails/password-reset";
 
 enum Templates {
   ORDER_PLACED = "order-placed",
+  CUSTOMER_WELCOME = "customer-welcome",
+  PASSWORD_RESET = "password-reset",
 }
 
 const templates: {[key in Templates]?: (props: unknown) => React.ReactNode} = {
-  [Templates.ORDER_PLACED]: orderPlacedEmail
+  [Templates.ORDER_PLACED]: orderPlacedEmail,
+  [Templates.CUSTOMER_WELCOME]: customerWelcomeEmail,
+  [Templates.PASSWORD_RESET]: passwordResetEmail,
 }
 
 type ResendOptions = {
@@ -65,7 +71,6 @@ class ResendNotificationProviderService extends AbstractNotificationProviderServ
     }
   }
 
-
   getTemplate(template: Templates) {
     if (this.options.html_templates?.[template]) {
       return this.options.html_templates[template].content
@@ -86,6 +91,10 @@ class ResendNotificationProviderService extends AbstractNotificationProviderServ
     switch(template) {
       case Templates.ORDER_PLACED:
         return "Order Confirmation"
+      case Templates.CUSTOMER_WELCOME:
+        return "Welcome to Medusa Store!"
+      case Templates.PASSWORD_RESET:
+        return "Reset Your Password"
       default:
         return "New Email"
     }

@@ -43,7 +43,7 @@ export async function signup(_currentState: unknown, formData: FormData) {
     })
 
     const customHeaders = { authorization: `Bearer ${token}` }
-    
+
     const { customer: createdCustomer } = await sdk.store.customer.create(
       customerForm,
       {},
@@ -55,7 +55,9 @@ export async function signup(_currentState: unknown, formData: FormData) {
       password,
     })
 
-    setAuthToken(typeof loginToken === 'string' ? loginToken : loginToken.location)
+    setAuthToken(
+      typeof loginToken === "string" ? loginToken : loginToken.location
+    )
 
     revalidateTag("customer")
     return createdCustomer
@@ -72,7 +74,7 @@ export async function login(_currentState: unknown, formData: FormData) {
     await sdk.auth
       .login("customer", "emailpass", { email, password })
       .then((token) => {
-        setAuthToken(typeof token === 'string' ? token : token.location)
+        setAuthToken(typeof token === "string" ? token : token.location)
         revalidateTag("customer")
       })
   } catch (error: any) {
@@ -159,3 +161,112 @@ export const updateCustomerAddress = async (
       return { success: false, error: err.toString() }
     })
 }
+
+export const forgotPassword = async (
+  _currentState: unknown,
+  formData: FormData
+) => {
+  const email = formData.get("email") as string
+
+  try {
+    await sdk.auth
+      .resetPassword("customer", "emailpass", {
+        identifier: email,
+      })
+      .then(() => {
+        return "If an account exists with the specified email, it'll receive instructions to reset the password."
+        // setAuthToken(typeof token === 'string' ? token : token.location)
+        // revalidateTag("customer")
+      })
+  } catch (error: any) {
+    return "If an account exists with the specified email, it'll receive instructions to reset the password."
+  }
+}
+
+export const resetPassword = async (
+  _currentState: unknown,
+  formData: FormData
+) => {
+  const email = formData.get("email") as string
+  const token = formData.get("token") as string
+  const password = formData.get("password") as string
+  const confirmPassword = formData.get("confirmPassword") as string
+  
+  if (password !== confirmPassword && password.length !== 0) {
+    return "Passwords do not match"
+  }
+  
+  if (!email) {
+    return "Invalid or expired URL. Please try again in a while or contact support"
+  }
+
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL}/auth/customer/emailpass/update`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        email,
+        password
+      })
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    console.log("Password updated successfully with response", response.json())
+
+    // Password reset successfully!
+    revalidateTag("customer")
+    
+  } catch (error) {
+    console.log("An error occurred while resetting user's password", error)
+    console.log("Here is the formdata", formData)
+    // alert(`Couldn't reset password: ${error.message}`)
+    throw error // Re-throw to handle in calling code if needed
+  }
+}
+
+// export const resetPassword = async (
+//   _currentState: unknown,
+//   formData: FormData
+// ) => {
+//   const email = formData.get("email") as string
+//   const token = formData.get("token") as string
+//   const password = formData.get("password") as string
+//   const confirmPassword = formData.get("confirmPassword") as string
+
+//   if (password !== confirmPassword && password.length !== 0) {
+//     return "Passwords do not match"
+//   }
+
+//   if (!email) {
+//     return "Invalid or expired URL. Please try again in a while or contact support"
+//   }
+//   sdk.auth
+//     .updateProvider(
+//       "customer",
+//       "emailpass",
+//       {
+//         email,
+//         password,
+//       },
+//       token
+//     )
+
+//     .then(() => {
+//       // alert("Password reset successfully!")
+//       // revalidateTag("customer")
+//     })
+
+//     .catch((error) => {
+//       console.log("An error occured while resetting user's password", error)
+//       console.log("Here is the formdata", formData)
+//       // alert(`Couldn't reset password: ${error.message}`)
+//     })
+
+//     .finally(() => {})
+// }

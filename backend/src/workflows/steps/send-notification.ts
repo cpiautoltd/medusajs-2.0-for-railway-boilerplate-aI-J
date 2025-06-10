@@ -9,8 +9,10 @@ export const sendNotificationStep = createStep(
       Modules.NOTIFICATION
     )
 
-    // console.log("\n\nCreating a notification and sending it.......")
-    // console.log(data[0])
+
+
+    console.log("\n\nCreating a notification and sending it.......")
+    console.log(data[0])
     const notification = await notificationModuleService.createNotifications(data)
     return new StepResponse(notification)
   }

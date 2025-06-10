@@ -22,6 +22,8 @@ export const DATABASE_URL = assertValue(
   'Environment variable for DATABASE_URL is not set',
 )
 
+export const STOREFRONT_URL = process.env.STOREFRONT_URL ?? 'http://locahost:8000'
+
 /**
  * (optional) Redis URL for Redis instance used by the backend
  */

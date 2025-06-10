@@ -117,27 +117,24 @@ const medusaConfig = {
       resolve: "./src/modules/length-pricing",
       key: LENGTH_PRICING_MODULE,
     },
-    {
-      resolve: "@medusajs/medusa/notification",
+    // {
+    //   resolve: "@medusajs/medusa/notification",
+    //   options: {
+    //     providers: [
+    //       {
+    //         resolve: "./src/modules/resend",
+    //         id: "resend",
+    //         options: {
+    //           channels: ["email"],
 
-      options: {
-        providers: [
-          {
-            resolve: "./src/modules/resend",
+    //           api_key: RESEND_API_KEY,
 
-            id: "resend",
-
-            options: {
-              channels: ["email"],
-
-              api_key: RESEND_API_KEY,
-
-              from: RESEND_FROM_EMAIL,
-            },
-          },
-        ],
-      },
-    },
+    //           from: RESEND_FROM_EMAIL,
+    //         },
+    //       },
+    //     ],
+    //   },
+    // },
     ...(REDIS_URL
       ? [
           {
