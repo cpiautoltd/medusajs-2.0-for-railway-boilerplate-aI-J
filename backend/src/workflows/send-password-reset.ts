@@ -2,7 +2,6 @@ import {
   createWorkflow, 
   WorkflowResponse,
 } from "@medusajs/framework/workflows-sdk"
-import { useQueryGraphStep } from "@medusajs/medusa/core-flows"
 import { sendNotificationStep } from "./steps/send-notification"
 
 type WorkflowInput = {
@@ -13,7 +12,7 @@ type WorkflowInput = {
 
 export const sendPasswordResetWorkflow = createWorkflow(
   "send-password-reset",
-  ({ email, token, resetLink }: WorkflowInput) => {
+  ({ email, resetLink }: WorkflowInput) => {
     // Generate reset token
 
 
