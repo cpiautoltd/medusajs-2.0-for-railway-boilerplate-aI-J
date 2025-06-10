@@ -1,7 +1,7 @@
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils";
 import { SubscriberArgs, type SubscriberConfig } from "@medusajs/medusa";
 import { STOREFRONT_URL } from "lib/constants";
-import { sendPasswordResetWorkflow } from "workflows/send-password-reset";
+import { sendPasswordResetWorkflow } from "../workflows/send-password-reset";
 
 export default async function resetPasswordTokenHandler({
   event: {
