@@ -1,5 +1,5 @@
+import { ContainerRegistrationKeys } from "@medusajs/framework/utils";
 import { SubscriberArgs, type SubscriberConfig } from "@medusajs/medusa";
-import { Modules } from "@medusajs/framework/utils";
 import { STOREFRONT_URL } from "lib/constants";
 import { sendPasswordResetWorkflow } from "workflows/send-password-reset";
 
@@ -10,10 +10,15 @@ export default async function resetPasswordTokenHandler({
   container,
 }: SubscriberArgs<{ entity_id: string; token: string; actor_type: string }>) {
 
+  const logger = container.resolve(ContainerRegistrationKeys.LOGGER)
 
-  const resetLink = `${STOREFRONT_URL}/reset-password?token=${token}&email=${email}`;
+  logger.info("reset password token handler with storefrontURL")
+  logger.info(STOREFRONT_URL)
+
+  const resetLink = `${STOREFRONT_URL ?? 'http://localhost:9000'}/reset-password?token=${token}&email=${email}`;
 
 
+  console.log("The reset link is : " + resetLink)
 
   await sendPasswordResetWorkflow(container).run({
     input: {
