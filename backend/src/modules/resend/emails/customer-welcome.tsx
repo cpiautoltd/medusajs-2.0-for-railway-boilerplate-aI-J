@@ -13,6 +13,7 @@ import {
 } from "@react-email/components";
 import * as React from "react";
 import { LOGO_URL } from "../constants";
+import { STOREFRONT_URL } from "lib/constants";
 
 export interface CustomerWelcomeEmailProps {
   customer: {
@@ -22,7 +23,7 @@ export interface CustomerWelcomeEmailProps {
   };
 }
 
-const STORE_URL = process.env.NEXT_PUBLIC_STORE_URL || "http://localhost:8000";
+const STORE_URL = STOREFRONT_URL ?? "http://localhost:8000";
 
 export const CustomerWelcomeEmailComponent = ({ customer }: CustomerWelcomeEmailProps) => {
   return (
