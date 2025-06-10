@@ -18,6 +18,8 @@ import {
   CustomerDTO,
   OrderDTO,
 } from "@medusajs/framework/types";
+import * as React from "react";
+import { LOGO_URL } from "../constants";
 // import { isBigNumber, BigNumber } from "@medusajs/framework/utils"; // or wherever your BigNumber is from
 
 type OrderPlacedEmailProps = {
@@ -37,7 +39,7 @@ type OrderPlacedEmailProps = {
 };
 
 
-const LOGO_URL = "https://studio.cpiautomation.com/assets/72c2132b-8656-4d27-b029-70e5f968b297";
+// const LOGO_URL = "https://studio.cpiautomation.com/assets/72c2132b-8656-4d27-b029-70e5f968b297";
 const COLOR_PRIMARY = "#2886c7";
 const COLOR_SECONDARY = "#262626";
 
