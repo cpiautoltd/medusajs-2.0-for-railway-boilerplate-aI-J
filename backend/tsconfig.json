@@ -15,7 +15,8 @@
     "rootDir": "./",
     "baseUrl": ".",
     "paths": {
-      "*": ["./src/*"]
+      "*": ["./src/*"],
+       "@/types": ["./src/types/index.ts"]
     },
     "jsx": "react-jsx",
     "forceConsistentCasingInFileNames": true,

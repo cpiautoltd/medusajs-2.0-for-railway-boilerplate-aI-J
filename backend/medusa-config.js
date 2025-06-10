@@ -27,7 +27,13 @@ import {
   UPS_MERCHANT_ID,
   MINIO_PORT,
   MINIO_USE_SSL,
+  CLERK_SECRET_KEY,
+  CLERK_PUBLISHABLE_KEY,
+  CLERK_WEBHOOK_SECRET,
+  CLERK_FRONTEND_URL,
+  CLERK_AUTHORIZED_PARTIES,
 } from "lib/constants";
+import { CLERK_INTEGRATION_MODULE } from "modules/clerk-integration";
 import { EXTRUDED_PRODUCTS_MODULE } from "modules/extruded-products";
 import { LENGTH_PRICING_MODULE } from "modules/length-pricing";
 
@@ -217,6 +223,17 @@ const medusaConfig = {
           },
         ]
       : []),
+    
+{
+  resolve: "./src/modules/clerk-integration",
+  key: CLERK_INTEGRATION_MODULE,
+  options: {
+    secretKey: CLERK_SECRET_KEY,
+    publishableKey: CLERK_PUBLISHABLE_KEY,
+    webhookSecret: CLERK_WEBHOOK_SECRET,
+    authorizedParties: CLERK_AUTHORIZED_PARTIES,
+  }
+}
   ],
   plugins: [
     ...(MEILISEARCH_HOST && MEILISEARCH_ADMIN_KEY

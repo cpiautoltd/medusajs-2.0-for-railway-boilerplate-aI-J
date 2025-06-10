@@ -93,6 +93,16 @@ export const MEILISEARCH_HOST = process.env.MEILISEARCH_HOST;
 export const MEILISEARCH_ADMIN_KEY = process.env.MEILISEARCH_ADMIN_KEY;
 
 /**
+ * Clerk Authentication Configuration
+ */
+export const CLERK_PUBLISHABLE_KEY = process.env.CLERK_PUBLISHABLE_KEY;
+export const CLERK_SECRET_KEY = process.env.CLERK_SECRET_KEY;
+export const CLERK_WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
+export const CLERK_FRONTEND_URL = process.env.CLERK_FRONTEND_URL || 'http://localhost:8000';
+export const CLERK_API_URL = process.env.CLERK_API_URL || 'https://api.clerk.dev';
+export const CLERK_AUTHORIZED_PARTIES = process.env.CLERK_AUTHORIZED_PARTIES
+
+/**
  * Worker mode
  */
 export const WORKER_MODE =

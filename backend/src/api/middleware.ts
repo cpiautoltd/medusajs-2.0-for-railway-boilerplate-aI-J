@@ -3,6 +3,11 @@ import { defineMiddlewares, validateAndTransformBody } from "@medusajs/framework
 import { 
   StoreAddCartLineItem,
 } from "@medusajs/medusa/api/store/carts/validators"
+import { 
+  authenticateClerkCustomer, 
+  optionalClerkAuth,
+  requireNotCustomer 
+} from "./middlewares/clerk-auth"
 import { z } from "zod";
 
 // Define enums matching the model
@@ -141,6 +146,58 @@ export default defineMiddlewares({
           StoreAddLengthBasedLineItemSchema
         ),
       ],
+    },
+    {
+      matcher: "/store/customers/me*",
+      middlewares: [authenticateClerkCustomer],
+    },
+    {
+      matcher: "/store/customers/*/addresses*",
+      middlewares: [authenticateClerkCustomer],
+    },
+    {
+      matcher: "/store/orders/customer/*",
+      middlewares: [authenticateClerkCustomer],
+    },
+    
+    // Cart with optional auth (guest checkout support)
+    {
+      matcher: "/store/carts*",
+      middlewares: [optionalClerkAuth],
+    },
+    
+    // Checkout requires authentication
+    {
+      matcher: "/store/carts/*/complete",
+      middlewares: [authenticateClerkCustomer],
+    },
+    
+    // Payment and shipping with auth
+    {
+      matcher: "/store/payment-collections*",
+      middlewares: [authenticateClerkCustomer],
+    },
+    {
+      matcher: "/store/shipping-options*",
+      middlewares: [optionalClerkAuth],
+    },
+    
+    // Returns require authentication
+    {
+      matcher: "/store/returns*",
+      middlewares: [authenticateClerkCustomer],
+    },
+    
+    // Admin protection
+    {
+      matcher: "/admin/*",
+      middlewares: [requireNotCustomer],
+    },
+    
+    // Skip auth for webhooks
+    {
+      matcher: "/webhooks/clerk",
+      middlewares: [],
     },
     // {
 
