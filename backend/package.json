@@ -18,6 +18,8 @@
     "ib": "init-backend",
     "start": "cd .medusa/server && medusa start --verbose",
     "dev": "medusa develop",
+    "dev:debug": "NODE_OPTIONS=\"--inspect=0.0.0.0:9231\" medusa develop --verbose",
+    "debug": "NODE_OPTIONS=\"--inspect=0.0.0.0:9231\" pnpm dev",
     "email:dev": "email dev --dir=./src/modules/email-notifications/templates --port=3002",
     "dev:email": "email dev --dir ./src/modules/resend/emails"
   },

@@ -2,21 +2,73 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Next.js: Debug Server",
+      "name": "Debug Backend (PNPM)",
       "type": "node",
-      "request": "attach",
-      "port": 9230,
-      "address": "localhost",
-      "localRoot": "${workspaceFolder}/storefront",
-      "remoteRoot": "${workspaceFolder}/storefront",
-      "skipFiles": ["<node_internals>/**"]
+      "request": "launch",
+      "cwd": "${workspaceFolder}/backend",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["dev"],
+      "env": {
+        "NODE_ENV": "development",
+        "NODE_OPTIONS": "--inspect=0.0.0.0:9231"
+      },
+      "console": "integratedTerminal",
+      "restart": true,
+      "protocol": "inspector",
+      "skipFiles": [
+        "<node_internals>/**",
+        "**/node_modules/**"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/backend/.medusa/server/**/*.js"
+      ],
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/backend/**",
+        "!**/node_modules/**"
+      ],
+      "sourceMaps": true
     },
     {
-      "name": "Next.js: Debug Client",
-      "type": "chrome",
+      "name": "Attach to Backend Process",
+      "type": "node",
+      "request": "attach",
+      "port": 9231,
+      "localRoot": "${workspaceFolder}/backend",
+      "remoteRoot": "${workspaceFolder}/backend",
+      "restart": true,
+      "skipFiles": [
+        "<node_internals>/**",
+        "**/node_modules/**"
+      ],
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/backend/**",
+        "!**/node_modules/**"
+      ],
+      "sourceMaps": true,
+      "trace": true
+    },
+    {
+      "name": "Debug Backend (NPX Direct)",
+      "type": "node",
       "request": "launch",
-      "url": "http://localhost:8000",
-      "webRoot": "${workspaceFolder}/storefront"
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["medusa", "develop", "--verbose"],
+      "cwd": "${workspaceFolder}/backend",
+      "env": {
+        "NODE_ENV": "development",
+        "NODE_OPTIONS": "--inspect=0.0.0.0:9231"
+      },
+      "console": "integratedTerminal",
+      "restart": true,
+      "protocol": "inspector",
+      "skipFiles": [
+        "<node_internals>/**",
+        "**/node_modules/**"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/backend/.medusa/server/**/*.js"
+      ],
+      "sourceMaps": true
     }
   ]
 }
