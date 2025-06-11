@@ -68,7 +68,7 @@ export const calculateLengthBasedPriceStep = createStep(
         endTapConfig
       );
 
-      if (calculatedPrice) totalPrice = calculatedPrice * quantity;
+      if (calculatedPrice) totalPrice = calculatedPrice;
     }
 
     return new StepResponse({
