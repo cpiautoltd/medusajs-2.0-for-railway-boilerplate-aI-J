@@ -86,6 +86,8 @@ export default function LengthBasedProductActions({
   const [quantity, setQuantity] = useState(1)
   const countryCode = useParams().countryCode as string
 
+  const [isPriceCalculating, setIsPriceCalculating] = useState(false)
+
   // Parse the end tap options from JSON string
   useEffect(() => {
     if (isTapEndEnabled && product.extruded_products?.endtap_options) {
@@ -175,51 +177,133 @@ export default function LengthBasedProductActions({
     setDisplayUnit(newUnit)
   }
 
-  // Calculate price whenever inputs change
-  useEffect(() => {
-    const calculatePrice = async () => {
-      if (!selectedVariant || !product.extruded_products) return
+  // Handle immediate length changes (for UI responsiveness)
+// const handleLengthChange = (newValue: number) => {
+//   // Convert from display unit to base unit
+//   const valueInBaseUnit = convertLength(
+//     newValue,
+//     displayUnit as Unit,
+//     baseUnitType as Unit
+//   )
 
-      setCalculatingPrice(true)
-      setPriceError(null)
+//   // Clamp to min/max in base unit
+//   const clampedValue = Math.max(
+//     product.extruded_products?.minLength || 0,
+//     Math.min(product.extruded_products?.maxLength || 100, valueInBaseUnit)
+//   )
 
-      try {
-        const tapOptions: Record<string, string> = {}
-        if (isTapEndEnabled) {
-          if (tapOptionLeft) tapOptions.left = tapOptionLeft
-          if (tapOptionRight) tapOptions.right = tapOptionRight
-        }
+//   // Update length immediately for responsive UI
+//   setSelectedLength(clampedValue)
+// }
 
-        const result = await calculateExtrudedPrice({
-          variantId: selectedVariant.id,
-          selectedLength: selectedLength,
-          endtapConfig: tapOptions,
-        })
+// Handle debounced price calculation (separate from immediate UI updates)
+const handleDebouncedPriceCalculation = async (newValue: number) => {
+  if (!selectedVariant || !product.extruded_products) return
 
-        if (result && result?.calculated_price) {
-          setCalculatedPrice(result.calculated_price)
-        } else {
-          setPriceError(result.error || "Failed to calculate price")
-          setCalculatedPrice(null)
-        }
-      } catch (error) {
-        console.error("Price calculation error:", error)
-        setPriceError("Failed to calculate price")
-        setCalculatedPrice(null)
-      } finally {
-        setCalculatingPrice(false)
-      }
+  setIsPriceCalculating(true)
+  setPriceError(null)
+
+  try {
+    // Convert from display unit to base unit
+    const valueInBaseUnit = convertLength(
+      newValue,
+      displayUnit as Unit,
+      baseUnitType as Unit
+    )
+
+    const clampedValue = Math.max(
+      product.extruded_products?.minLength || 0,
+      Math.min(product.extruded_products?.maxLength || 100, valueInBaseUnit)
+    )
+
+    const tapOptions: Record<string, string> = {}
+    if (isTapEndEnabled) {
+      if (tapOptionLeft) tapOptions.left = tapOptionLeft
+      if (tapOptionRight) tapOptions.right = tapOptionRight
     }
 
-    calculatePrice()
-  }, [
-    selectedVariant,
-    selectedLength,
-    tapOptionLeft,
-    tapOptionRight,
-    isTapEndEnabled,
-    product.extruded_products,
-  ])
+    const result = await calculateExtrudedPrice({
+      variantId: selectedVariant.id,
+      selectedLength: clampedValue,
+      endtapConfig: tapOptions,
+    })
+
+    if (result && result?.calculated_price) {
+      setCalculatedPrice(result.calculated_price)
+    } else {
+      setPriceError("Failed to calculate price")
+    }
+  } catch (error) {
+    console.error("Error calculating price:", error)
+    setPriceError("Error calculating price. Please try again.")
+  } finally {
+    setIsPriceCalculating(false)
+  }
+}
+
+  // 2. ADD this new useEffect to handle tap option changes (since we removed the above):
+useEffect(() => {
+  // Only recalculate when tap options change (not length)
+  if (selectedVariant && product.extruded_products && (tapOptionLeft || tapOptionRight)) {
+    handleDebouncedPriceCalculation(displayLength)
+  }
+}, [tapOptionLeft, tapOptionRight])
+
+// 3. ADD initial price calculation on component mount:
+useEffect(() => {
+  // Calculate initial price when variant is first selected
+  if (selectedVariant && product.extruded_products && calculatedPrice === null) {
+    handleDebouncedPriceCalculation(displayLength)
+  }
+}, [selectedVariant])
+
+
+
+  // Calculate price whenever inputs change
+  // useEffect(() => {
+  //   const calculatePrice = async () => {
+  //     if (!selectedVariant || !product.extruded_products) return
+
+  //     setCalculatingPrice(true)
+  //     setPriceError(null)
+
+  //     try {
+  //       const tapOptions: Record<string, string> = {}
+  //       if (isTapEndEnabled) {
+  //         if (tapOptionLeft) tapOptions.left = tapOptionLeft
+  //         if (tapOptionRight) tapOptions.right = tapOptionRight
+  //       }
+
+  //       const result = await calculateExtrudedPrice({
+  //         variantId: selectedVariant.id,
+  //         selectedLength: selectedLength,
+  //         endtapConfig: tapOptions,
+  //       })
+
+  //       if (result && result?.calculated_price) {
+  //         setCalculatedPrice(result.calculated_price)
+  //       } else {
+  //         setPriceError(result.error || "Failed to calculate price")
+  //         setCalculatedPrice(null)
+  //       }
+  //     } catch (error) {
+  //       console.error("Price calculation error:", error)
+  //       setPriceError("Failed to calculate price")
+  //       setCalculatedPrice(null)
+  //     } finally {
+  //       setCalculatingPrice(false)
+  //     }
+  //   }
+
+  //   calculatePrice()
+  // }, [
+  //   selectedVariant,
+  //   selectedLength,
+  //   tapOptionLeft,
+  //   tapOptionRight,
+  //   isTapEndEnabled,
+  //   product.extruded_products,
+  // ])
 
   // Add to cart handler
   const handleAddToCart = async () => {
@@ -308,7 +392,7 @@ export default function LengthBasedProductActions({
         <Divider /> */}
 
         {/* Enhanced Length Input */}
-        <EnhancedLengthInput
+        {/* <EnhancedLengthInput
           value={displayLength}
           min={minDisplayLength}
           max={maxDisplayLength}
@@ -319,8 +403,22 @@ export default function LengthBasedProductActions({
           onUnitChange={handleUnitChange}
           pricePerUnit={pricePerUnit ?? undefined}
           currency={region?.currency_code?.toUpperCase() || "$"}
-        />
+        /> */}
 
+<EnhancedLengthInput
+  value={displayLength}
+  min={minDisplayLength}
+  max={maxDisplayLength}
+  unit={displayUnit}
+  disabled={isAdding}
+  loading={calculatingPrice} // Keep this for external loading states
+  onChange={handleLengthChange} // Immediate UI updates
+  onDebouncedChange={handleDebouncedPriceCalculation} // Debounced price calculation
+  onUnitChange={handleUnitChange}
+  pricePerUnit={pricePerUnit ?? undefined}
+  currency={region?.currency_code?.toUpperCase() || "$"}
+  debounceMs={800} // 800ms delay for price calculation
+/>
         {/* End Tap Options */}
         {isTapEndEnabled && parsedTapOptions.length > 0 && (
           <>
@@ -367,8 +465,7 @@ export default function LengthBasedProductActions({
         </div> */}
 
         {/* Price Display */}
-<div className="flex flex-col gap-y-2">
-  {/* Unit Price */}
+{/* <div className="flex flex-col gap-y-2">
   {calculatedPrice && quantity > 1 && (
     <div className="flex items-center justify-between">
       <span className="text-sm text-gray-600">
@@ -383,7 +480,6 @@ export default function LengthBasedProductActions({
     </div>
   )}
   
-  {/* Total Price */}
   <div className="flex items-center justify-between">
     <span className="text-sm font-medium text-gray-700">
       Total Price {quantity > 1 && `(${quantity} × unit)`}
@@ -406,8 +502,50 @@ export default function LengthBasedProductActions({
       <span className="text-sm text-gray-500">Select options</span>
     )}
   </div>
-</div>
+</div> */}
 
+
+{/* Price Display */}
+<div className="flex flex-col gap-y-2">
+  {/* Unit Price */}
+  {calculatedPrice && quantity > 1 && (
+    <div className="flex items-center justify-between">
+      <span className="text-sm text-gray-600">
+        Unit Price
+      </span>
+      <span className="text-sm text-gray-600">
+        {convertToLocale({
+          amount: calculatedPrice,
+          currency_code: region?.currency_code || "usd",
+        })}
+      </span>
+    </div>
+  )}
+  
+  {/* Total Price */}
+  <div className="flex items-center justify-between">
+    <span className="text-sm font-medium text-gray-700">
+      Total Price {quantity > 1 && `(${quantity} × unit)`}
+    </span>
+    {calculatingPrice || isPriceCalculating ? (
+      <div className="flex items-center gap-2">
+        <Spinner className="animate-spin h-4 w-4" />
+        <span className="text-sm text-gray-500">Calculating...</span>
+      </div>
+    ) : priceError ? (
+      <span className="text-sm text-red-600">{priceError}</span>
+    ) : calculatedPrice ? (
+      <span className="text-lg font-semibold">
+        {convertToLocale({
+          amount: calculatedPrice * quantity,
+          currency_code: region?.currency_code || "usd",
+        })}
+      </span>
+    ) : (
+      <span className="text-sm text-gray-500">Select options</span>
+    )}
+  </div>
+</div>
         {/* Quantity and Add to Cart Row */}
         <div className="flex gap-3 items-end">
           {/* Quantity Selector */}
