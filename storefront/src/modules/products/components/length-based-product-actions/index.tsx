@@ -697,7 +697,7 @@ useEffect(() => {
             />
           ) : product.extruded_products ? (
             <EnhancedExtrusionViewer
-              modelId={"8020-1001"}
+              modelId={product.variants?.[0]?.sku ?? "1001"}
               length={selectedLength}
               width={100} // You may need to adjust these based on your product data
               height={100}

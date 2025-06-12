@@ -149,7 +149,11 @@ const EnhancedExtrusionViewer = ({
 
     const loader = new GLTFLoader();
     try {
-      const modelUrl = `/api/models?id=${encodeURIComponent(modelId)}&lod=${lod}`;
+
+      console.log("Trying out model : \n\n", modelId)
+
+
+      const modelUrl = `/api/models?sku=${encodeURIComponent(modelId)}&lod=${lod}`;
       console.log("Loading model from:", modelUrl);
       const onProgress = (event: ProgressEvent) => {
         if (event.lengthComputable) {
