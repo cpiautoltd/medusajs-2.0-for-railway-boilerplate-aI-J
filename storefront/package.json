@@ -24,6 +24,8 @@
     "webpack": "^5"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.828.0",
+    "@aws-sdk/s3-request-presigner": "^3.828.0",
     "@headlessui/react": "^1.6.1",
     "@hookform/error-message": "^2.0.0",
     "@medusajs/icons": "^2.7.0",
@@ -38,12 +40,14 @@
     "algoliasearch": "^4.20.0",
     "axios": "^1.6.7",
     "fs-extra": "^11.3.0",
+    "install": "^0.13.0",
     "lodash": "^4.17.21",
     "medusajs-launch-utils": "latest",
     "next": "^14.0.0",
     "path": "^0.12.7",
     "pg": "^8.11.3",
     "qs": "^6.12.1",
+    "rate-limiter-flexible": "^7.1.1",
     "react": "^18.2.0",
     "react-country-flag": "^3.0.2",
     "react-dom": "^18.2.0",
