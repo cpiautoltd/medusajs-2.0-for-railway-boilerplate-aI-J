@@ -704,7 +704,7 @@ useEffect(() => {
               leftTap={!!tapOptionLeft}
               rightTap={!!tapOptionRight}
               color="#cccccc"
-              lod="high"
+              lod="low"
               fallbackToGeneric={true}
             />
           ) : null}

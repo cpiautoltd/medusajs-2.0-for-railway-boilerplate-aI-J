@@ -1,32 +1,32 @@
 // src/modules/products/components/enhanced-extrusion-viewer.tsx
-import React, { useRef, useEffect, useState, useCallback } from "react";
-import * as THREE from "three";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import { GLTF, GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import React, { useRef, useEffect, useState, useCallback } from "react"
+import * as THREE from "three"
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls"
+import { GLTF, GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader"
 
 type EnhancedExtrusionViewerProps = {
-  modelId: string;
-  length: number;
-  unit?: "inch" | "mm";
-  width?: number;
-  height?: number;
-  leftTap?: boolean;
-  rightTap?: boolean;
-  color?: string;
-  lod?: "low" | "medium" | "high";
-  fallbackToGeneric?: boolean;
-};
+  modelId: string
+  length: number
+  unit?: "inch" | "mm"
+  width?: number
+  height?: number
+  leftTap?: boolean
+  rightTap?: boolean
+  color?: string
+  lod?: "low" | "medium" | "high"
+  fallbackToGeneric?: boolean
+}
 
 const convertToMeters = (value: number, unit: "inch" | "mm"): number => {
   switch (unit) {
     case "inch":
-      return value * 0.0254; // 1 inch = 0.0254 meters
+      return value * 0.0254 // 1 inch = 0.0254 meters
     case "mm":
-      return value * 0.001; // 1 mm = 0.001 meters
+      return value * 0.001 // 1 mm = 0.001 meters
     default:
-      throw new Error(`Unsupported unit: ${unit}`);
+      throw new Error(`Unsupported unit: ${unit}`)
   }
-};
+}
 
 const EnhancedExtrusionViewer = ({
   modelId,
@@ -40,40 +40,83 @@ const EnhancedExtrusionViewer = ({
   lod = "medium",
   fallbackToGeneric = true,
 }: EnhancedExtrusionViewerProps) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
-  const sceneRef = useRef<THREE.Scene | null>(null);
-  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
-  const controlsRef = useRef<OrbitControls | null>(null);
-  const modelRef = useRef<THREE.Group | null>(null);
-  const requestRef = useRef<number | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [loadingProgress, setLoadingProgress] = useState(0);
-  const [hasError, setHasError] = useState(false);
-  const [isUsingFallback, setIsUsingFallback] = useState(false);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
-  const [modelOpacity, setModelOpacity] = useState(1);
-  const previousLengthRef = useRef<number>(length);
-  
+  const containerRef = useRef<HTMLDivElement>(null)
+  const rendererRef = useRef<THREE.WebGLRenderer | null>(null)
+  const sceneRef = useRef<THREE.Scene | null>(null)
+  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null)
+  const controlsRef = useRef<OrbitControls | null>(null)
+  const modelRef = useRef<THREE.Group | null>(null)
+  const requestRef = useRef<number | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [loadingProgress, setLoadingProgress] = useState(0)
+  const [hasError, setHasError] = useState(false)
+  const [isUsingFallback, setIsUsingFallback] = useState(false)
+  const [isInitialLoad, setIsInitialLoad] = useState(true)
+  const [modelOpacity, setModelOpacity] = useState(1)
+  const previousLengthRef = useRef<number>(length)
+
   // Smart zoom configuration - adjusted for much much further initial camera position
-  const ZOOM_SENSITIVITY = 0.3; // Very subtle since we're starting from very far back
-  const MIN_ZOOM_DISTANCE = 3.0; // Matches new minimum camera distance
-  const MAX_ZOOM_DISTANCE = 150; // Much larger range for very long extrusions
+  const ZOOM_SENSITIVITY = 0.3 // Very subtle since we're starting from very far back
+  const MIN_ZOOM_DISTANCE = 3.0 // Matches new minimum camera distance
+  const MAX_ZOOM_DISTANCE = 150 // Much larger range for very long extrusions
 
   const initThreeJS = useCallback(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current) return
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(containerRef.current.clientWidth, containerRef.current.clientHeight);
-    renderer.setClearColor(0xf5f5f5, 1);
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-    containerRef.current.appendChild(renderer.domElement);
-    rendererRef.current = renderer;
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
+    renderer.setPixelRatio(window.devicePixelRatio)
+    renderer.setSize(
+      containerRef.current.clientWidth,
+      containerRef.current.clientHeight
+    )
+    renderer.setClearColor(0xf5f5f5, 1)
+    renderer.outputColorSpace = THREE.SRGBColorSpace
 
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xf5f5f5);
-    sceneRef.current = scene;
+    renderer.setClearColor(0xf5f5f5, 1)
+    renderer.outputColorSpace = THREE.SRGBColorSpace
+    // Enhanced rendering settings
+    renderer.shadowMap.enabled = true
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap
+    // renderer.physicallyCorrectLights = true;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping
+    // renderer.toneMappingExposure = 1.0
+    renderer.toneMappingExposure = 1.5 // Brighter overall
+
+    containerRef.current.appendChild(renderer.domElement)
+    rendererRef.current = renderer
+
+    const scene = new THREE.Scene()
+    // scene.background = new THREE.Color(0xf5f5f5)
+    // scene.background = new THREE.CanvasTexture(((c,ctx,g)=>(c.width=c.height=256,g=ctx.createLinearGradient(0,0,0,256),g.addColorStop(0,'#f8f8f8'),g.addColorStop(1,'#d8d8d8'),ctx.fillStyle=g,ctx.fillRect(0,0,256,256),c))(document.createElement('canvas'),document.createElement('canvas').getContext('2d')));
+    // Create studio background
+    // const canvas = document.createElement("canvas")
+    // canvas.width = 256
+    // canvas.height = 256
+    // const ctx = canvas.getContext("2d")
+    // if (ctx) {
+    //   const gradient = ctx.createLinearGradient(0, 0, 0, 256)
+    //   gradient.addColorStop(0, "#f8f8f8")
+    //   gradient.addColorStop(0.5, "#e8e8e8")
+    //   gradient.addColorStop(1, "#d8d8d8")
+    //   ctx.fillStyle = gradient
+    //   ctx.fillRect(0, 0, 256, 256)
+    //   scene.background = new THREE.CanvasTexture(canvas)
+    // }
+
+    const canvas = document.createElement("canvas")
+    canvas.width = 256
+    canvas.height = 256
+    const ctx = canvas.getContext("2d")
+    if (ctx) {
+      const gradient = ctx.createLinearGradient(0, 0, 0, 256)
+      gradient.addColorStop(0, "#ffffff") // Bright white
+      gradient.addColorStop(0.5, "#f5f5f5") // Light gray
+      gradient.addColorStop(1, "#eeeeee") // Lighter gray
+      ctx.fillStyle = gradient
+      ctx.fillRect(0, 0, 256, 256)
+      scene.background = new THREE.CanvasTexture(canvas)
+    }
+    sceneRef.current = scene
 
     // Fixed camera settings - increased near plane and adjusted FOV
     const camera = new THREE.PerspectiveCamera(
@@ -81,126 +124,200 @@ const EnhancedExtrusionViewer = ({
       containerRef.current.clientWidth / containerRef.current.clientHeight,
       0.1, // Increased near plane to prevent clipping
       1000 // Increased far plane
-    );
-    camera.position.set(2, 2, 2); // More reasonable starting position
-    cameraRef.current = camera;
+    )
+    camera.position.set(2, 2, 2) // More reasonable starting position
+    cameraRef.current = camera
 
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.25;
-    controls.enableZoom = true;
-    controls.autoRotate = false;
-    controls.target.set(0, 0, 0);
-    controls.update();
-    controlsRef.current = controls;
+    const controls = new OrbitControls(camera, renderer.domElement)
+    controls.enableDamping = true
+    controls.dampingFactor = 0.25
+    controls.enableZoom = true
+    controls.autoRotate = false
+    controls.target.set(0, 0, 0)
+    controls.update()
+    controlsRef.current = controls
 
     // Improved lighting setup
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-    scene.add(ambientLight);
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    directionalLight.position.set(5, 10, 7.5);
-    scene.add(directionalLight);
-    const backLight = new THREE.DirectionalLight(0xffffff, 0.3);
-    backLight.position.set(-5, -5, -5);
-    scene.add(backLight);
+    // const ambientLight = new THREE.AmbientLight(0xffffff, 0.6)
+    // scene.add(ambientLight)
+    // const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8)
+    // directionalLight.position.set(5, 10, 7.5)
+    // scene.add(directionalLight)
+    // const backLight = new THREE.DirectionalLight(0xffffff, 0.3)
+    // backLight.position.set(-5, -5, -5)
+    // scene.add(backLight)
+
+    // Professional 3-point lighting setup
+    // const keyLight = new THREE.DirectionalLight(0xffffff, 1.2)
+    // keyLight.position.set(10, 10, 5)
+    // keyLight.castShadow = true
+    // scene.add(keyLight)
+
+    // const fillLight = new THREE.DirectionalLight(0xffffff, 0.4)
+    // fillLight.position.set(-10, 5, 5)
+    // scene.add(fillLight)
+
+    // const rimLight = new THREE.DirectionalLight(0xffffff, 0.6)
+    // rimLight.position.set(0, 5, -10)
+    // scene.add(rimLight)
+
+    // const ambientLight = new THREE.AmbientLight(0xffffff, 0.2)
+    // scene.add(ambientLight)
+
+    // Softer, brighter lighting - no harsh reflections
+    const keyLight = new THREE.DirectionalLight(0xffffff, 0.8) // Softer
+    keyLight.position.set(10, 10, 5)
+    keyLight.castShadow = true
+    scene.add(keyLight)
+
+    const fillLight = new THREE.DirectionalLight(0xffffff, 0.3)
+    fillLight.position.set(-10, 5, 5)
+    scene.add(fillLight)
+
+    const rimLight = new THREE.DirectionalLight(0xffffff, 0.2)
+    rimLight.position.set(0, 5, -10)
+    scene.add(rimLight)
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7) // Much brighter!
+    scene.add(ambientLight)
 
     const animate = () => {
-      requestRef.current = requestAnimationFrame(animate);
+      requestRef.current = requestAnimationFrame(animate)
       if (controlsRef.current) {
-        controlsRef.current.update();
+        controlsRef.current.update()
       }
-      renderer.render(scene, camera);
-    };
-    animate();
-  }, []);
+      renderer.render(scene, camera)
+    }
+    animate()
+  }, [])
 
   const loadModel = useCallback(async () => {
-    if (!sceneRef.current || !cameraRef.current || !controlsRef.current) return;
+    if (!sceneRef.current || !cameraRef.current || !controlsRef.current) return
 
     // Smooth loading transition - fade out current model
     if (!isInitialLoad) {
-      setModelOpacity(0.3);
+      setModelOpacity(0.3)
     }
-    
-    setIsLoading(true);
-    setLoadingProgress(0);
-    setHasError(false);
-    setIsUsingFallback(false);
+
+    setIsLoading(true)
+    setLoadingProgress(0)
+    setHasError(false)
+    setIsUsingFallback(false)
 
     // Save current camera position and target for non-initial loads
-    const savedCameraPosition = isInitialLoad ? null : cameraRef.current.position.clone();
-    const savedControlsTarget = isInitialLoad ? null : controlsRef.current.target.clone();
-    
+    const savedCameraPosition = isInitialLoad
+      ? null
+      : cameraRef.current.position.clone()
+    const savedControlsTarget = isInitialLoad
+      ? null
+      : controlsRef.current.target.clone()
+
     // Calculate zoom adjustment based on length change
-    const lengthRatio = isInitialLoad ? 1 : length / previousLengthRef.current;
-    const zoomFactor = 1 + ((1 / lengthRatio - 1) * ZOOM_SENSITIVITY);
+    const lengthRatio = isInitialLoad ? 1 : length / previousLengthRef.current
+    const zoomFactor = 1 + (1 / lengthRatio - 1) * ZOOM_SENSITIVITY
 
     // Remove existing model safely
     if (modelRef.current) {
-      sceneRef.current.remove(modelRef.current);
+      sceneRef.current.remove(modelRef.current)
       modelRef.current.traverse((child) => {
         if (child instanceof THREE.Mesh) {
-          child.geometry?.dispose();
-          child.material?.dispose();
+          child.geometry?.dispose()
+          child.material?.dispose()
         }
-      });
-      modelRef.current = null;
+      })
+      modelRef.current = null
     }
 
-    const loader = new GLTFLoader();
+    const loader = new GLTFLoader()
     try {
-
       console.log("Trying out model : \n\n", modelId)
 
-
-      const modelUrl = `/api/models?sku=${encodeURIComponent(modelId)}&lod=${lod}`;
-      console.log("Loading model from:", modelUrl);
+      const modelUrl = `/api/models?sku=${encodeURIComponent(
+        modelId
+      )}&lod=${lod}`
+      console.log("Loading model from:", modelUrl)
       const onProgress = (event: ProgressEvent) => {
         if (event.lengthComputable) {
-          const progress = Math.round((event.loaded / event.total) * 100);
-          setLoadingProgress(progress);
+          const progress = Math.round((event.loaded / event.total) * 100)
+          setLoadingProgress(progress)
         }
-      };
+      }
 
-      const gltf = await loader.loadAsync(modelUrl, onProgress);
-      const model = gltf.scene;
+      const gltf = await loader.loadAsync(modelUrl, onProgress)
+      const model = gltf.scene
 
       // Apply material with initial opacity for smooth transition
       model.traverse((child: any) => {
         if (child instanceof THREE.Mesh) {
-          child.material = new THREE.MeshPhongMaterial({
+          // child.material = new THREE.MeshPhongMaterial({
+          //   color: new THREE.Color(color),
+          //   shininess: 80,
+          //   specular: new THREE.Color(0x333333),
+          //   transparent: true,
+          //   opacity: isInitialLoad ? 1 : 0.3, // Start with low opacity for smooth transition
+          // });
+
+          // child.material = new THREE.MeshPhysicalMaterial({
+          //   color: new THREE.Color(color),
+          //   metalness: 0.9,
+          //   roughness: 0.1,
+          //   reflectivity: 0.8,
+          //   clearcoat: 0.3,
+          //   clearcoatRoughness: 0.1,
+          //   side: THREE.DoubleSide,
+          // })
+          // child.castShadow = true
+          // child.receiveShadow = true
+
+          child.material = new THREE.MeshPhysicalMaterial({
             color: new THREE.Color(color),
-            shininess: 80,
-            specular: new THREE.Color(0x333333),
-            transparent: true,
-            opacity: isInitialLoad ? 1 : 0.3, // Start with low opacity for smooth transition
-          });
+            metalness: 0.3, // ✅ Less metallic = fewer reflections
+            roughness: 0.6, // ✅ More rough = no bright spots
+            reflectivity: 0.2, // ✅ Much less reflective
+            clearcoat: 0.0, // ✅ No glossy coating
+          })
+          child.castShadow = true
+          child.receiveShadow = true
         }
-      });
+      })
 
       // Get the original model bounding box
-      const originalBox = new THREE.Box3().setFromObject(model);
-      const originalSize = originalBox.getSize(new THREE.Vector3());
-      console.log("Original model size:", originalSize.x, originalSize.y, originalSize.z);
+      const originalBox = new THREE.Box3().setFromObject(model)
+      const originalSize = originalBox.getSize(new THREE.Vector3())
+      console.log(
+        "Original model size:",
+        originalSize.x,
+        originalSize.y,
+        originalSize.z
+      )
 
       // Convert desired length to meters
-      const targetLengthInMeters = convertToMeters(length, unit);
-      console.log(`Target length: ${length} ${unit} = ${targetLengthInMeters} meters`);
+      const targetLengthInMeters = convertToMeters(length, unit)
+      console.log(
+        `Target length: ${length} ${unit} = ${targetLengthInMeters} meters`
+      )
 
       // Calculate scale factor - assume model is in millimeters
       // Most GLTF models from CAD are exported in millimeters
-      const modelLengthInMeters = originalSize.x * 0.001; // Convert mm to meters
-      const scaleX = modelLengthInMeters !== 0 ? targetLengthInMeters / modelLengthInMeters : 1;
-      
-      console.log("Model length in meters:", modelLengthInMeters);
-      console.log("Scale factor:", scaleX);
+      const modelLengthInMeters = originalSize.x * 0.001 // Convert mm to meters
+      const scaleX =
+        modelLengthInMeters !== 0
+          ? targetLengthInMeters / modelLengthInMeters
+          : 1
+
+      console.log("Model length in meters:", modelLengthInMeters)
+      console.log("Scale factor:", scaleX)
 
       // Apply scaling
       if (isNaN(scaleX) || !isFinite(scaleX) || scaleX <= 0) {
-        console.error("Invalid scale factor:", scaleX, "Using fallback scale of 1");
-        model.scale.set(1, 1, 1);
+        console.error(
+          "Invalid scale factor:",
+          scaleX,
+          "Using fallback scale of 1"
+        )
+        model.scale.set(1, 1, 1)
       } else {
-        model.scale.set(scaleX, 1, 1); // Scale only X-axis (length)
+        model.scale.set(scaleX, 1, 1) // Scale only X-axis (length)
       }
 
       // Add end taps if requested
@@ -237,107 +354,144 @@ const EnhancedExtrusionViewer = ({
       // }
 
       // Center the model
-      const finalBox = new THREE.Box3().setFromObject(model);
-      const center = finalBox.getCenter(new THREE.Vector3());
-      model.position.sub(center);
+      const finalBox = new THREE.Box3().setFromObject(model)
+      const center = finalBox.getCenter(new THREE.Vector3())
+      model.position.sub(center)
 
       // Add to scene
-      sceneRef.current.add(model);
-      modelRef.current = model;
+      sceneRef.current.add(model)
+      modelRef.current = model
 
       // Position camera appropriately
       if (isInitialLoad) {
         // Initial load - set default camera position
-        const boundingBox = new THREE.Box3().setFromObject(model);
-        const boundingSize = boundingBox.getSize(new THREE.Vector3());
-        const maxDim = Math.max(boundingSize.x, boundingSize.y, boundingSize.z);
-        
-        console.log("Final bounding size:", boundingSize.x, boundingSize.y, boundingSize.z);
-        console.log("Max dimension:", maxDim);
+        const boundingBox = new THREE.Box3().setFromObject(model)
+        const boundingSize = boundingBox.getSize(new THREE.Vector3())
+        const maxDim = Math.max(boundingSize.x, boundingSize.y, boundingSize.z)
+
+        console.log(
+          "Final bounding size:",
+          boundingSize.x,
+          boundingSize.y,
+          boundingSize.z
+        )
+        console.log("Max dimension:", maxDim)
 
         // Calculate appropriate camera distance - much much further back for proper framing
-        const cameraDistance = Math.max(maxDim * 25, 3.0); // Dramatically increased for proper overview
-        
+        const cameraDistance = Math.max(maxDim * 25, 3.0) // Dramatically increased for proper overview
+
         // Position camera at an angle for better initial view - adjusted multipliers
         cameraRef.current.position.set(
-          cameraDistance * 0.8,  // Further back on X
-          cameraDistance * 0.6,  // Slightly higher on Y  
-          cameraDistance * 0.8   // Further back on Z
-        );
-        cameraRef.current.lookAt(0, 0, 0);
-        controlsRef.current.target.set(0, 0, 0);
-        controlsRef.current.update();
-        
-        setIsInitialLoad(false);
+          cameraDistance * 0.8, // Further back on X
+          cameraDistance * 0.6, // Slightly higher on Y
+          cameraDistance * 0.8 // Further back on Z
+        )
+        cameraRef.current.lookAt(0, 0, 0)
+        controlsRef.current.target.set(0, 0, 0)
+        controlsRef.current.update()
+
+        setIsInitialLoad(false)
       } else {
         // Subsequent loads - restore saved camera position with smart zoom
         if (savedCameraPosition && savedControlsTarget) {
           // Apply smart zoom by adjusting camera distance from target
-          const direction = savedCameraPosition.clone().sub(savedControlsTarget).normalize();
-          const currentDistance = savedCameraPosition.distanceTo(savedControlsTarget);
-          const newDistance = Math.max(MIN_ZOOM_DISTANCE, Math.min(MAX_ZOOM_DISTANCE, currentDistance * zoomFactor));
-          
-          const newCameraPosition = savedControlsTarget.clone().add(direction.multiplyScalar(newDistance));
-          
-          cameraRef.current.position.copy(newCameraPosition);
-          controlsRef.current.target.copy(savedControlsTarget);
-          controlsRef.current.update();
-          
-          console.log(`Smart zoom: length ratio ${lengthRatio.toFixed(2)}, zoom factor ${zoomFactor.toFixed(2)}, distance ${currentDistance.toFixed(2)} -> ${newDistance.toFixed(2)}`);
+          const direction = savedCameraPosition
+            .clone()
+            .sub(savedControlsTarget)
+            .normalize()
+          const currentDistance =
+            savedCameraPosition.distanceTo(savedControlsTarget)
+          const newDistance = Math.max(
+            MIN_ZOOM_DISTANCE,
+            Math.min(MAX_ZOOM_DISTANCE, currentDistance * zoomFactor)
+          )
+
+          const newCameraPosition = savedControlsTarget
+            .clone()
+            .add(direction.multiplyScalar(newDistance))
+
+          cameraRef.current.position.copy(newCameraPosition)
+          controlsRef.current.target.copy(savedControlsTarget)
+          controlsRef.current.update()
+
+          console.log(
+            `Smart zoom: length ratio ${lengthRatio.toFixed(
+              2
+            )}, zoom factor ${zoomFactor.toFixed(
+              2
+            )}, distance ${currentDistance.toFixed(2)} -> ${newDistance.toFixed(
+              2
+            )}`
+          )
         }
       }
-      
+
       // Smooth opacity transition
       if (!isInitialLoad) {
         // Animate opacity back to full
         const animateOpacity = () => {
           model.traverse((child: any) => {
             if (child instanceof THREE.Mesh && child.material) {
-              const currentOpacity = child.material.opacity;
+              const currentOpacity = child.material.opacity
               if (currentOpacity < 1) {
-                child.material.opacity = Math.min(1, currentOpacity + 0.05);
-                requestAnimationFrame(animateOpacity);
+                child.material.opacity = Math.min(1, currentOpacity + 0.05)
+                requestAnimationFrame(animateOpacity)
               } else {
                 // Animation complete, update state
-                setModelOpacity(1);
+                setModelOpacity(1)
               }
             }
-          });
-        };
+          })
+        }
         // Small delay to make transition more noticeable
-        setTimeout(animateOpacity, 100);
+        setTimeout(animateOpacity, 100)
       }
-      
-      // Update previous length for next comparison
-      previousLengthRef.current = length;
 
-      setIsLoading(false);
+      // Update previous length for next comparison
+      previousLengthRef.current = length
+
+      setIsLoading(false)
     } catch (error) {
-      console.error("Error loading model:", error);
+      console.error("Error loading model:", error)
       if (fallbackToGeneric) {
-        console.log("Using fallback generic model");
-        setIsUsingFallback(true);
-        await createGenericModel();
+        console.log("Using fallback generic model")
+        setIsUsingFallback(true)
+        await createGenericModel()
       } else {
-        setHasError(true);
-        setIsLoading(false);
+        setHasError(true)
+        setIsLoading(false)
       }
     }
-  }, [modelId, lod, color, length, unit, fallbackToGeneric, isInitialLoad, ZOOM_SENSITIVITY, MIN_ZOOM_DISTANCE, MAX_ZOOM_DISTANCE]);
+  }, [
+    modelId,
+    lod,
+    color,
+    length,
+    unit,
+    fallbackToGeneric,
+    isInitialLoad,
+    ZOOM_SENSITIVITY,
+    MIN_ZOOM_DISTANCE,
+    MAX_ZOOM_DISTANCE,
+  ])
 
   const createGenericModel = useCallback(async () => {
-    if (!sceneRef.current || !cameraRef.current || !controlsRef.current) return;
+    if (!sceneRef.current || !cameraRef.current || !controlsRef.current) return
 
     // Save current camera position and target for non-initial loads
-    const savedCameraPosition = isInitialLoad ? null : cameraRef.current.position.clone();
-    const savedControlsTarget = isInitialLoad ? null : controlsRef.current.target.clone();
-    
-    // Calculate zoom adjustment based on length change
-    const lengthRatio = isInitialLoad ? 1 : length / previousLengthRef.current;
-    const zoomFactor = 1 + ((1 / lengthRatio - 1) * ZOOM_SENSITIVITY);
+    const savedCameraPosition = isInitialLoad
+      ? null
+      : cameraRef.current.position.clone()
+    const savedControlsTarget = isInitialLoad
+      ? null
+      : controlsRef.current.target.clone()
 
-    const group = new THREE.Group();
-    modelRef.current = group;
+    // Calculate zoom adjustment based on length change
+    const lengthRatio = isInitialLoad ? 1 : length / previousLengthRef.current
+    const zoomFactor = 1 + (1 / lengthRatio - 1) * ZOOM_SENSITIVITY
+
+    const group = new THREE.Group()
+    modelRef.current = group
 
     const material = new THREE.MeshPhongMaterial({
       color: new THREE.Color(color),
@@ -345,134 +499,179 @@ const EnhancedExtrusionViewer = ({
       specular: new THREE.Color(0x333333),
       transparent: true,
       opacity: isInitialLoad ? 1 : 0.3, // Start with low opacity for smooth transition
-    });
+    })
 
     // Convert dimensions to meters
-    const lengthInMeters = convertToMeters(length, unit);
-    const widthInMeters = convertToMeters(width, unit);
-    const heightInMeters = convertToMeters(height, unit);
-    
-    console.log("Generic model dimensions (meters):", lengthInMeters, heightInMeters, widthInMeters);
+    const lengthInMeters = convertToMeters(length, unit)
+    const widthInMeters = convertToMeters(width, unit)
+    const heightInMeters = convertToMeters(height, unit)
+
+    console.log(
+      "Generic model dimensions (meters):",
+      lengthInMeters,
+      heightInMeters,
+      widthInMeters
+    )
 
     // Create main box geometry
-    const boxGeometry = new THREE.BoxGeometry(lengthInMeters, heightInMeters, widthInMeters);
-    const boxMesh = new THREE.Mesh(boxGeometry, material);
-    group.add(boxMesh);
+    const boxGeometry = new THREE.BoxGeometry(
+      lengthInMeters,
+      heightInMeters,
+      widthInMeters
+    )
+    const boxMesh = new THREE.Mesh(boxGeometry, material)
+    group.add(boxMesh)
 
     // Add taps if requested
-    const tapRadius = Math.min(heightInMeters, widthInMeters) * 0.1;
-    const tapLength = tapRadius * 2;
+    const tapRadius = Math.min(heightInMeters, widthInMeters) * 0.1
+    const tapLength = tapRadius * 2
 
     if (leftTap) {
-      const leftTapGeometry = new THREE.CylinderGeometry(tapRadius, tapRadius, tapLength, 16);
-      leftTapGeometry.rotateZ(Math.PI / 2);
-      const leftTapMaterial = new THREE.MeshPhongMaterial({ color: 0x0066cc });
-      const leftTapMesh = new THREE.Mesh(leftTapGeometry, leftTapMaterial);
-      leftTapMesh.position.set(-lengthInMeters / 2 - tapLength / 2, 0, 0);
-      group.add(leftTapMesh);
+      const leftTapGeometry = new THREE.CylinderGeometry(
+        tapRadius,
+        tapRadius,
+        tapLength,
+        16
+      )
+      leftTapGeometry.rotateZ(Math.PI / 2)
+      const leftTapMaterial = new THREE.MeshPhongMaterial({ color: 0x0066cc })
+      const leftTapMesh = new THREE.Mesh(leftTapGeometry, leftTapMaterial)
+      leftTapMesh.position.set(-lengthInMeters / 2 - tapLength / 2, 0, 0)
+      group.add(leftTapMesh)
     }
 
     if (rightTap) {
-      const rightTapGeometry = new THREE.CylinderGeometry(tapRadius, tapRadius, tapLength, 16);
-      rightTapGeometry.rotateZ(Math.PI / 2);
-      const rightTapMaterial = new THREE.MeshPhongMaterial({ color: 0x00cc66 });
-      const rightTapMesh = new THREE.Mesh(rightTapGeometry, rightTapMaterial);
-      rightTapMesh.position.set(lengthInMeters / 2 + tapLength / 2, 0, 0);
-      group.add(rightTapMesh);
+      const rightTapGeometry = new THREE.CylinderGeometry(
+        tapRadius,
+        tapRadius,
+        tapLength,
+        16
+      )
+      rightTapGeometry.rotateZ(Math.PI / 2)
+      const rightTapMaterial = new THREE.MeshPhongMaterial({ color: 0x00cc66 })
+      const rightTapMesh = new THREE.Mesh(rightTapGeometry, rightTapMaterial)
+      rightTapMesh.position.set(lengthInMeters / 2 + tapLength / 2, 0, 0)
+      group.add(rightTapMesh)
     }
 
-    sceneRef.current.add(group);
+    sceneRef.current.add(group)
 
     // Position camera
     if (isInitialLoad) {
       // Initial load - set default camera position
-      const boundingBox = new THREE.Box3().setFromObject(group);
-      const boundingSize = boundingBox.getSize(new THREE.Vector3());
-      const maxDim = Math.max(boundingSize.x, boundingSize.y, boundingSize.z);
-      const cameraDistance = Math.max(maxDim * 25, 3.0); // Much much further back for proper framing
-      
+      const boundingBox = new THREE.Box3().setFromObject(group)
+      const boundingSize = boundingBox.getSize(new THREE.Vector3())
+      const maxDim = Math.max(boundingSize.x, boundingSize.y, boundingSize.z)
+      const cameraDistance = Math.max(maxDim * 25, 3.0) // Much much further back for proper framing
+
       cameraRef.current.position.set(
-        cameraDistance * 0.8,  // Further back on X
-        cameraDistance * 0.6,  // Slightly higher on Y  
-        cameraDistance * 0.8   // Further back on Z
-      );
-      cameraRef.current.lookAt(0, 0, 0);
-      controlsRef.current.target.set(0, 0, 0);
-      controlsRef.current.update();
-      
-      setIsInitialLoad(false);
+        cameraDistance * 0.8, // Further back on X
+        cameraDistance * 0.6, // Slightly higher on Y
+        cameraDistance * 0.8 // Further back on Z
+      )
+      cameraRef.current.lookAt(0, 0, 0)
+      controlsRef.current.target.set(0, 0, 0)
+      controlsRef.current.update()
+
+      setIsInitialLoad(false)
     } else {
       // Subsequent loads - restore saved camera position with smart zoom
       if (savedCameraPosition && savedControlsTarget) {
         // Apply smart zoom by adjusting camera distance from target
-        const direction = savedCameraPosition.clone().sub(savedControlsTarget).normalize();
-        const currentDistance = savedCameraPosition.distanceTo(savedControlsTarget);
-        const newDistance = Math.max(MIN_ZOOM_DISTANCE, Math.min(MAX_ZOOM_DISTANCE, currentDistance * zoomFactor));
-        
-        const newCameraPosition = savedControlsTarget.clone().add(direction.multiplyScalar(newDistance));
-        
-        cameraRef.current.position.copy(newCameraPosition);
-        controlsRef.current.target.copy(savedControlsTarget);
-        controlsRef.current.update();
+        const direction = savedCameraPosition
+          .clone()
+          .sub(savedControlsTarget)
+          .normalize()
+        const currentDistance =
+          savedCameraPosition.distanceTo(savedControlsTarget)
+        const newDistance = Math.max(
+          MIN_ZOOM_DISTANCE,
+          Math.min(MAX_ZOOM_DISTANCE, currentDistance * zoomFactor)
+        )
+
+        const newCameraPosition = savedControlsTarget
+          .clone()
+          .add(direction.multiplyScalar(newDistance))
+
+        cameraRef.current.position.copy(newCameraPosition)
+        controlsRef.current.target.copy(savedControlsTarget)
+        controlsRef.current.update()
       }
     }
-    
+
     // Smooth opacity transition for generic model
     if (!isInitialLoad) {
       // Animate opacity back to full
       const animateOpacity = () => {
         if (material.opacity < 1) {
-          material.opacity = Math.min(1, material.opacity + 0.05);
-          requestAnimationFrame(animateOpacity);
+          material.opacity = Math.min(1, material.opacity + 0.05)
+          requestAnimationFrame(animateOpacity)
         } else {
           // Animation complete, update state
-          setModelOpacity(1);
+          setModelOpacity(1)
         }
-      };
+      }
       // Small delay to make transition more noticeable
-      setTimeout(animateOpacity, 100);
+      setTimeout(animateOpacity, 100)
     }
-    
-    // Update previous length for next comparison
-    previousLengthRef.current = length;
 
-    setIsLoading(false);
-  }, [length, width, height, color, unit, leftTap, rightTap, isInitialLoad, ZOOM_SENSITIVITY, MIN_ZOOM_DISTANCE, MAX_ZOOM_DISTANCE]);
+    // Update previous length for next comparison
+    previousLengthRef.current = length
+
+    setIsLoading(false)
+  }, [
+    length,
+    width,
+    height,
+    color,
+    unit,
+    leftTap,
+    rightTap,
+    isInitialLoad,
+    ZOOM_SENSITIVITY,
+    MIN_ZOOM_DISTANCE,
+    MAX_ZOOM_DISTANCE,
+  ])
 
   useEffect(() => {
-    initThreeJS();
+    initThreeJS()
     return () => {
       if (requestRef.current) {
-        cancelAnimationFrame(requestRef.current);
+        cancelAnimationFrame(requestRef.current)
       }
       if (rendererRef.current && containerRef.current) {
-        containerRef.current.removeChild(rendererRef.current.domElement);
-        rendererRef.current.dispose();
+        containerRef.current.removeChild(rendererRef.current.domElement)
+        rendererRef.current.dispose()
       }
-    };
-  }, [initThreeJS]);
+    }
+  }, [initThreeJS])
 
   useEffect(() => {
     if (sceneRef.current) {
-      loadModel();
+      loadModel()
     }
-  }, [loadModel]);
+  }, [loadModel])
 
   // Reset initial load flag when modelId changes (new model)
   useEffect(() => {
-    setIsInitialLoad(true);
-  }, [modelId]);
+    setIsInitialLoad(true)
+  }, [modelId])
 
   useEffect(() => {
     const handleResize = () => {
-      if (!containerRef.current || !rendererRef.current || !cameraRef.current) return;
-      cameraRef.current.aspect = containerRef.current.clientWidth / containerRef.current.clientHeight;
-      cameraRef.current.updateProjectionMatrix();
-      rendererRef.current.setSize(containerRef.current.clientWidth, containerRef.current.clientHeight);
-    };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+      if (!containerRef.current || !rendererRef.current || !cameraRef.current)
+        return
+      cameraRef.current.aspect =
+        containerRef.current.clientWidth / containerRef.current.clientHeight
+      cameraRef.current.updateProjectionMatrix()
+      rendererRef.current.setSize(
+        containerRef.current.clientWidth,
+        containerRef.current.clientHeight
+      )
+    }
+    window.addEventListener("resize", handleResize)
+    return () => window.removeEventListener("resize", handleResize)
+  }, [])
 
   return (
     <div className="relative w-full h-64 md:h-96">
@@ -531,7 +730,7 @@ const EnhancedExtrusionViewer = ({
         Drag to rotate • Scroll to zoom
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default EnhancedExtrusionViewer;
+export default EnhancedExtrusionViewer
